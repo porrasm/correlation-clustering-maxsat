@@ -25,6 +25,9 @@ public class ProtoEncoding {
         variables[variableIndex].Add(lit);
         return lit;
     }
+    public void Register(ProtoLiteral lit) {
+        variables[lit.Variable].Add(lit);
+    }
 
     public void AddHards(IEnumerable<ProtoLiteral[]> clauses) {
         foreach (var clause in clauses) {

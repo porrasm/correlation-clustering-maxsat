@@ -70,6 +70,9 @@ public abstract class ICrlClusteringEncodingBase : ICrlClusteringEncoding {
 }
 
 public abstract class ICoClusteringBasedEncoding : ICrlClusteringEncodingBase {
+    #region fields
+    #endregion
+
     protected ICoClusteringBasedEncoding(IWeightFunction weights) : base(weights) { }
 
     public override CrlClusteringSolution GetSolution(SATSolution solution) {

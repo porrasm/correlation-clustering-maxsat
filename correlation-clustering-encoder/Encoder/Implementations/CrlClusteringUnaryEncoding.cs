@@ -12,9 +12,12 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
 
     private ProtoEncoding protoEncoding;
 
-    private const byte Y_VAR = 0;
-    private const byte A_VAR = 1;
-    private const byte D_VAR = 2;
+    private const byte Y_VAR_INDEX = 0;
+    private const byte A_VAR_INDEX = 1;
+    private const byte D_VAR_INDEX = 2;
+
+    private ProtoVariable2D yVar, dVar;
+    private ProtoVariable3D aVar;
 
     private int N, K;
 
@@ -30,8 +33,11 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
         K = N;
 
         protoEncoding = new(3);
-    }
 
+        yVar = new ProtoVariable2D(protoEncoding, Y_VAR_INDEX, N);
+        aVar = new ProtoVariable3D(protoEncoding, A_VAR_INDEX, N, N);
+        dVar = new ProtoVariable2D(protoEncoding, D_VAR_INDEX, N);
+    }
 
     public override MaxSATEncoding Encode() {
         Init();
@@ -83,7 +89,7 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
         for (int i = 0; i < N; i++) {
             ProtoLiteral[] clusterClause = new ProtoLiteral[K];
             for (int k = 0; k < K; k++) {
-                clusterClause[k] = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, i));
+                clusterClause[k] = yVar[k, i];
             }
             // Exactly one cluster (pairwise, inefficient)
             protoEncoding.AddHards(Encodings.ExactlyOne(clusterClause));
@@ -91,9 +97,9 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
     }
 
     private void HardSimilar(int k, int i, int j) {
-        ProtoLiteral a_kij = protoEncoding.GetLiteral(A_VAR, GetALiteralIndex(k, i, j));
-        ProtoLiteral y_ki = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, i));
-        ProtoLiteral y_kj = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, j));
+        ProtoLiteral a_kij = aVar[k, i, j];
+        ProtoLiteral y_ki = yVar[k, i];
+        ProtoLiteral y_kj = yVar[k, j];
 
         // Hard similar
         protoEncoding.AddHard(a_kij.Neg, y_ki);
@@ -101,9 +107,9 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
         protoEncoding.AddHard(a_kij, y_ki.Neg, y_kj.Neg);
     }
     private void HardDissimilar(int k, int i, int j) {
-        ProtoLiteral d_ij = protoEncoding.GetLiteral(D_VAR, GetDLiteralIndex(i, j));
-        ProtoLiteral y_ki = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, i));
-        ProtoLiteral y_kj = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, j));
+        ProtoLiteral d_ij = dVar[i, j];
+        ProtoLiteral y_ki = yVar[k, i];
+        ProtoLiteral y_kj = yVar[k, j];
 
         // Hard dissimilar
         protoEncoding.AddHard(d_ij, y_ki.Neg, y_kj.Neg);
@@ -111,8 +117,8 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
 
     private void MustLink(int i, int j) {
         for (int k = 0; k < K; k++) {
-            ProtoLiteral y_ki = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, i));
-            ProtoLiteral y_kj = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, j));
+            ProtoLiteral y_ki = yVar[k, i];
+            ProtoLiteral y_kj = yVar[k, j];
 
             // Must link
             protoEncoding.AddHard(y_ki.Neg, y_kj);
@@ -122,8 +128,8 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
 
     private void CannotLink(int i, int j) {
         for (int k = 0; k < K; k++) {
-            ProtoLiteral y_ki = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, i));
-            ProtoLiteral y_kj = protoEncoding.GetLiteral(Y_VAR, GetYLiteralIndex(k, j));
+            ProtoLiteral y_ki = yVar[k, i];
+            ProtoLiteral y_kj = yVar[k, j];
 
             // Cannot link
             protoEncoding.AddHard(y_ki.Neg, y_kj.Neg);
@@ -133,13 +139,13 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
     private void SoftSimilar(int i, int j) {
         ProtoLiteral[] clause = new ProtoLiteral[K];
         for (int k = 0; k < K; k++) {
-            clause[k] = protoEncoding.GetLiteral(A_VAR, GetALiteralIndex(k, i, j));
+            clause[k] = aVar[k, i, j];
         }
         protoEncoding.AddSoft(weights.GetWeight(instance.GetCost(i, j)), clause);
     }
 
     private void SoftDissimilar(int i, int j) {
-        ProtoLiteral d_ij = protoEncoding.GetLiteral(D_VAR, GetDLiteralIndex(i, j));
+        ProtoLiteral d_ij = dVar[i, j];
         protoEncoding.AddSoft(weights.GetWeight(-instance.GetCost(i, j)), d_ij.Neg);
     }
 
@@ -156,33 +162,16 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
             ProtoLiteral lit = translation.GetK(litIndex + 1);
 
             // Assignments are 0 indexed
-            if (lit.Variable != Y_VAR) {
+            if (lit.Variable != Y_VAR_INDEX) {
                 continue;
             }
 
-            GetYParameters(lit.Literal, out int k, out int i);
+            yVar.GetParameters(lit.Literal, out int k, out int i);
             Console.WriteLine($"TRUE literal i = {i} -> k = {k}");
             clustering[i] = k;
         }
 
         return new CrlClusteringSolution(instance, clustering, true);
     }
-
-    #region variables
-    private int GetYLiteralIndex(int k, int i) {
-        return (k * N) + i;
-    }
-    private void GetYParameters(int index, out int k, out int i) {
-        k = index / N;
-        i = index % N;
-    }
-
-    private int GetALiteralIndex(int k, int i, int j) {
-        return (k * N * N) + (i * N) + j;
-    }
-    private int GetDLiteralIndex(int i, int j) {
-        return (i * N) + j;
-    }
-    #endregion
 }
 
