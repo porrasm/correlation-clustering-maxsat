@@ -1,0 +1,1 @@
+﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -i /mnt/p/Stuff/School/gradu/projects/_problems/debug-bmp/test.bmp.matrix -s /mnt/p/Stuff/School/gradu/projects/dependencies/maxhs/build/release/bin/maxhs -t 10 --solver-flag printSoln  
