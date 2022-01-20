@@ -9,16 +9,20 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public class CrlClusteringTransitiveEncoding : ICoClusteringBasedEncoding {
+    public override byte VariableCount => 1;
+
     public CrlClusteringTransitiveEncoding(IWeightFunction weights) : base(weights) { }
 
     public override string GetEncodingType() => "transitive";
 
-    public override MaxSATEncoding Encode() {
-        MaxSATEncoding encoding = new();
+    protected override void InitializeCoClusterVariable(out ProtoVariable2D coClusterVar) {
+        coClusterVar = new ProtoVariable2D(protoEncoding, 0, instance.DataPointCount);
+    }
 
+    protected override void RunProtoEncode() {
         foreach (Edge edge in instance) {
-            int x_ij = CoClusterLiteral(edge.I, edge.J);
-            AddCoClusterConstraints(encoding, edge, x_ij);
+            ProtoLiteral x_ij = coClusterVar[edge.I, edge.J];
+            AddCoClusterConstraints(x_ij, edge.Cost);
 
             if (edge.I != edge.J) {
                 for (int k = 0; k < instance.DataPointCount; k++) {
@@ -26,15 +30,13 @@ public class CrlClusteringTransitiveEncoding : ICoClusteringBasedEncoding {
                         continue;
                     }
 
-                    int x_jk = CoClusterLiteral(edge.J, k);
-                    int x_ik = CoClusterLiteral(edge.I, k);
+                    ProtoLiteral x_jk = coClusterVar[edge.J, k];
+                    ProtoLiteral x_ik = coClusterVar[edge.I, k];
 
                     // Hard transitivity for distinct 3 literals
-                    encoding.AddHard(-x_ij, -x_jk, x_ik);
+                    protoEncoding.AddHard(x_ij.Neg, x_jk.Neg, x_ik);
                 }
             }
         }
-
-        return encoding;
     }
 }

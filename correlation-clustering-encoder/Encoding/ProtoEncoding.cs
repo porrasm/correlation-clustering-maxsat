@@ -53,4 +53,10 @@ public class ProtoEncoding {
         }
         return translation;
     }
+
+    public void Clear() {
+        variables = null;
+        ProtoClauses.Clear();
+        ProtoClauses = null;
+    }
 }

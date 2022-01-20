@@ -21,7 +21,6 @@ public static class Encodings {
                 clauses.Add(new ProtoLiteral[] { a.Neg, b.Neg });
             }
         }
-        Console.WriteLine("At most one count: " + clauses.Count);
         return clauses;
     }
     public static List<ProtoLiteral[]> ExactlyOne(IEnumerable<ProtoLiteral> variables) {

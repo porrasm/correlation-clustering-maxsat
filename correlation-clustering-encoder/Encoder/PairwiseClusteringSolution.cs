@@ -10,19 +10,18 @@ namespace CorrelationClusteringEncoder.Encoder;
 
 public class PairwiseClusteringSolution {
     #region fields
-    public delegate void IndexDestructor(int literal, out int i, out int j);
-
-    private IndexDestructor indexFromClusterLiteral;
-    private int pointCount, variableCount;
+    private ProtoLiteralTranslator translation;
+    private ProtoVariable2D coClusterVariable;
+    private int pointCount;
 
     private List<int>[] graph;
     private bool[] visited;
     #endregion
 
-    public PairwiseClusteringSolution(int pointCount, int variableCount, IndexDestructor indexDestructor, SATSolution solution) {
+    public PairwiseClusteringSolution(ProtoLiteralTranslator translator, int pointCount, ProtoVariable2D coClusterVariable, SATSolution solution) {
+        this.translation = translator;
         this.pointCount = pointCount;
-        this.variableCount = variableCount;
-        this.indexFromClusterLiteral = indexDestructor;
+        this.coClusterVariable = coClusterVariable;
 
         graph = BuildClusterGraph(solution);
         visited = new bool[pointCount];
@@ -30,15 +29,22 @@ public class PairwiseClusteringSolution {
 
     private List<int>[] BuildClusterGraph(SATSolution solution) {
         List<int>[] graph = new List<int>[pointCount];
-        for (int i = 0; i < graph.Length; i++) {
-            graph[i] = new List<int>();
+        for (int i = 0; i < pointCount; i++) {
+            graph[i] = new();
         }
 
-        for (int e = 0; e < variableCount; e++) {
-            if (!solution.Assignments[e]) {
+        for (int litIndex = 0; litIndex < solution.Assignments.Length; litIndex++) {
+            if (!solution.Assignments[litIndex]) {
                 continue;
             }
-            indexFromClusterLiteral(e + 1, out int i, out int j);
+
+            ProtoLiteral lit = translation.GetK(litIndex + 1);
+            // Assignments are 0 indexed
+            if (lit.Variable != 0) {
+                continue;
+            }
+
+            coClusterVariable.GetParameters(lit.Literal, out int i, out int j);
             if (i == j) {
                 continue;
             }

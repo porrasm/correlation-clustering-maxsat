@@ -30,7 +30,7 @@ public class Args {
     [Option("data-point-limit", Required = false, HelpText = "Maximum number of data points to use, leave empty from unlimited.")]
     public int DataPointCountLimit { get; set; }
 
-    public string WCNFFile(ICrlClusteringEncoding enc) => $"{InputFile}.{enc.GetEncodingType()}.wcnf";
-    public string OutputFile(ICrlClusteringEncoding enc) => $"{InputFile}.{enc.GetEncodingType()}.solution";
+    public string WCNFFile(ICrlClusteringEncoder enc) => $"{InputFile}.{enc.GetEncodingType()}.wcnf";
+    public string OutputFile(ICrlClusteringEncoder enc) => $"{InputFile}.{enc.GetEncodingType()}.solution";
     #endregion
 }

@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Benchmarking;
 
 public static class Benchmarks {
-    public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoding[] codecs) {
+    public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoder[] codecs) {
         Console.WriteLine($"Starting benchmarks on {codecs.Length} encodings...");
         List<BenchResult> results = new List<BenchResult>();
-        foreach (ICrlClusteringEncoding encoding in codecs) {
+        foreach (ICrlClusteringEncoder encoding in codecs) {
             results.Add(Benchmark(cluster, encoding));
         }
         StringBuilder sb = new StringBuilder();
@@ -40,7 +40,7 @@ public static class Benchmarks {
         File.WriteAllText($"{Args.Instance.InputFile}.results.txt", sb.ToString());
     }
 
-    public static BenchResult Benchmark(CrlClusteringInstance cluster, ICrlClusteringEncoding encoding) {
+    public static BenchResult Benchmark(CrlClusteringInstance cluster, ICrlClusteringEncoder encoding) {
         Console.WriteLine($"\nEncoding '{encoding.GetEncodingType()}' with {cluster.DataPointCount} data points and {cluster.EdgeCount} edges");
 
         BenchEncode(cluster, encoding, out long encodingTimeMs);
@@ -67,7 +67,7 @@ public static class Benchmarks {
         return new BenchResult(encoding, solution, true, encodingTimeMs, solvingTimeMs);
     }
 
-    private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoding encoding, out long elapsedMs) {
+    private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out long elapsedMs) {
         Stopwatch sw = Stopwatch.StartNew();
         MaxSATEncoding maxsat = encoding.Encode(instance);
         sw.Stop();
@@ -95,14 +95,14 @@ public static class Benchmarks {
         return p.StandardOutput.ReadToEnd();
     }
 
-    public static Process GetSolverProcess(ICrlClusteringEncoding encoding) {
+    public static Process GetSolverProcess(ICrlClusteringEncoder encoding) {
         Process solverProcess = new Process();
         solverProcess.StartInfo.FileName = Args.Instance.MaxSATSolver;
         solverProcess.StartInfo.Arguments = GetArguments(encoding);
         solverProcess.StartInfo.RedirectStandardOutput = true;
         return solverProcess;
     }
-    private static string GetArguments(ICrlClusteringEncoding encoding) {
+    private static string GetArguments(ICrlClusteringEncoder encoding) {
         string wcnf = Args.Instance.WCNFFile(encoding);
         if (Args.Instance.MaxSATSolverFlag == null) {
             return wcnf;
@@ -111,13 +111,13 @@ public static class Benchmarks {
     }
 
     public struct BenchResult {
-        public ICrlClusteringEncoding Encoding { get; }
+        public ICrlClusteringEncoder Encoding { get; }
         public SATSolution SATSolution { get; }
         public bool Completed { get; }
         public long EncodingTimeMS { get; }
         public long SolvingTimeMs { get; }
 
-        public BenchResult(ICrlClusteringEncoding encoding, SATSolution sATSolution = null, bool completed = false, long encodingTimeMS = 0, long solvingTimeMs = 0) {
+        public BenchResult(ICrlClusteringEncoder encoding, SATSolution sATSolution = null, bool completed = false, long encodingTimeMS = 0, long solvingTimeMs = 0) {
             SATSolution = sATSolution;
             Encoding = encoding;
             Completed = completed;

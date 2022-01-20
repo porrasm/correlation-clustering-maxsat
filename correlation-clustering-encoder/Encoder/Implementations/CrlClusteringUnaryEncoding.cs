@@ -8,10 +8,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
-public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
-
-    private ProtoEncoding protoEncoding;
-
+public class CrlClusteringUnaryEncoding : IProtoEncoder {
     private const byte Y_VAR_INDEX = 0;
     private const byte A_VAR_INDEX = 1;
     private const byte D_VAR_INDEX = 2;
@@ -21,7 +18,7 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
 
     private int N, K;
 
-    private ProtoLiteralTranslator translation;
+    public override byte VariableCount => 3;
 
     public CrlClusteringUnaryEncoding(IWeightFunction weights) : base(weights) {
     }
@@ -32,16 +29,13 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
         N = instance.DataPointCount;
         K = N;
 
-        protoEncoding = new(3);
-
         yVar = new ProtoVariable2D(protoEncoding, Y_VAR_INDEX, N);
         aVar = new ProtoVariable3D(protoEncoding, A_VAR_INDEX, N, N);
         dVar = new ProtoVariable2D(protoEncoding, D_VAR_INDEX, N);
     }
 
-    public override MaxSATEncoding Encode() {
+    public override void ProtoEncode() {
         Init();
-
         ExactlyOneCluster();
 
         for (int i = 0; i < N; i++) {
@@ -72,16 +66,6 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
                 }
             }
         }
-
-        translation = protoEncoding.GenerateTranslation();
-
-        MaxSATEncoding encoding = new MaxSATEncoding();
-        foreach (ProtoClause clause in protoEncoding.ProtoClauses) {
-            encoding.AddClause(translation.TranslateClause(clause));
-        }
-        protoEncoding = null;
-
-        return encoding;
     }
 
     private void ExactlyOneCluster() {
@@ -167,7 +151,6 @@ public class CrlClusteringUnaryEncoding : ICrlClusteringEncodingBase {
             }
 
             yVar.GetParameters(lit.Literal, out int k, out int i);
-            Console.WriteLine($"TRUE literal i = {i} -> k = {k}");
             clustering[i] = k;
         }
 
