@@ -15,7 +15,7 @@ public class MinimumRangeMultiplied : IWeightFunction {
     public void Initialize(CrlClusteringInstance clusteringInstance) {
         minimumDiffernce = double.MaxValue;
         HashSet<double> costs = new();
-        foreach (Edge edge in clusteringInstance) {
+        foreach (Edge edge in clusteringInstance.Edges()) {
             if (edge.Cost is double.PositiveInfinity or double.NegativeInfinity) {
                 continue;
             }

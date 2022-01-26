@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Clustering;
 
-public class CrlClusteringInstance : IEnumerable<Edge> {
+public class CrlClusteringInstance {
     #region fields
     public int DataPointCount { get; private set; }
     public int DataPointsSquared => DataPointCount * DataPointCount;
@@ -53,7 +53,7 @@ public class CrlClusteringInstance : IEnumerable<Edge> {
 
     private int GetEdgeCount() {
         int count = 0;
-        foreach (Edge edge in this) {
+        foreach (Edge edge in Edges()) {
             if (edge.Cost != 0) {
                 count++;
             }
@@ -66,15 +66,19 @@ public class CrlClusteringInstance : IEnumerable<Edge> {
     public double GetCost(int i, int j) => similarityMatrix[i, j];
 
     #region enumeration
-    public IEnumerator<Edge> GetEnumerator() {
+    public IEnumerable<Edge> Edges() {
         for (int i = 0; i < DataPointCount; i++) {
             for (int j = 0; j < DataPointCount; j++) {
                 yield return new Edge(i, j, similarityMatrix[i, j]);
             }
         }
     }
-    IEnumerator IEnumerable.GetEnumerator() {
-        return GetEnumerator();
+    public IEnumerable<Edge> Edges_I_LessThan_J() {
+        for (int i = 0; i < DataPointCount; i++) {
+            for (int j = i + 1; j < DataPointCount; j++) {
+                yield return new Edge(i, j, similarityMatrix[i, j]);
+            }
+        }
     }
     #endregion
 }
@@ -83,9 +87,9 @@ public struct Edge {
     public int I, J;
     public double Cost;
 
-    public Edge(int u, int v, double cost) {
-        I = u;
-        J = v;
+    public Edge(int i, int j, double cost) {
+        I = i;
+        J = j;
         Cost = cost;
     }
 

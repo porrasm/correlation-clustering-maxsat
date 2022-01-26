@@ -10,7 +10,7 @@ Parser.Default.ParseArguments<Args>(args).WithParsed(parsed => {
     Args.Instance = parsed;
 
     CrlClusteringInstance problem = ClusterParser.FromFile(parsed.InputFile, parsed.DataPointCountLimit, new(true, 0, 1, -0.5, 0.5));
-    Benchmarks.BenchmarkEncodings(problem, IProtoEncoder.GetEncodings(new MinimumRangeMultiplied(), parsed.Encodings == null ? null : parsed.Encodings.ToArray()));
+    Benchmarks.BenchmarkEncodings(problem, false, IProtoEncoder.GetEncodings(new MinimumRangeMultiplied(), parsed.Encodings == null ? null : parsed.Encodings.ToArray()));
 }).WithNotParsed(parse => {
     Console.WriteLine("Incorrect input parameters. Exiting application.");
 });

@@ -54,12 +54,12 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     #region abstract
     public abstract byte VariableCount { get; }
     public abstract string GetEncodingType();
-    public abstract void ProtoEncode();
-    public abstract CrlClusteringSolution GetSolution(SATSolution solution);
+    protected abstract void ProtoEncode();
+    protected abstract CrlClusteringSolution GetSolution(SATSolution solution);
     #endregion
 
     #region static
-    private const string DEFAULT_ENCODINGS = "transitive unary";
+    private const string DEFAULT_ENCODINGS = "transitive logarithmic unary";
     public static ICrlClusteringEncoder[] GetEncodings(IWeightFunction weights, params string[]? encodingTypes) {
         if (encodingTypes == null || encodingTypes.Length == 0) {
             return GetEncodings(weights, DEFAULT_ENCODINGS.Split());
@@ -73,9 +73,10 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     }
 
     private static ICrlClusteringEncoder GetEncoding(string encodingType, IWeightFunction weights) {
-        return encodingType switch {
+        return encodingType.Trim() switch {
             "transitive" => new CrlClusteringTransitiveEncoding(weights),
             "unary" => new CrlClusteringUnaryEncoding(weights),
+            "logarithmic" => new CrlClusteringLogEncoding(weights),
             _ => throw new Exception("Unknown encoding: " + encodingType)
         };
     }

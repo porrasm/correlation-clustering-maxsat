@@ -10,12 +10,22 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Benchmarking;
 
 public static class Benchmarks {
-    public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoder[] codecs) {
+    public static void BenchmarkEncodings(CrlClusteringInstance cluster, bool parallel, params ICrlClusteringEncoder[] codecs) {
         Console.WriteLine($"Starting benchmarks on {codecs.Length} encodings...");
         List<BenchResult> results = new List<BenchResult>();
-        foreach (ICrlClusteringEncoder encoding in codecs) {
-            results.Add(Benchmark(cluster, encoding));
+
+        if (parallel) {
+            Parallel.For(0, codecs.Length, (i) => {
+                ICrlClusteringEncoder? encoding = codecs[i];
+                results.Add(Benchmark(cluster, encoding));
+            });
+        } else {
+            for (int i = 0; i < codecs.Length; i++) {
+                ICrlClusteringEncoder? encoding = codecs[i];
+                results.Add(Benchmark(cluster, encoding));
+            }
         }
+
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("----------------------------------------------------");
         sb.AppendLine("\nResults:");
@@ -61,7 +71,7 @@ public static class Benchmarks {
 
         Console.WriteLine($"Solve time: {solvingTimeMs}ms");
 
-        Console.WriteLine($"\nGetting solution...");
+        Console.WriteLine($"\nGetting solution for {encoding.GetEncodingType()}...");
         SATSolution solution = new SATSolution(solverOutput);
 
         return new BenchResult(encoding, solution, true, encodingTimeMs, solvingTimeMs);

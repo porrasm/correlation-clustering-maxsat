@@ -8,13 +8,14 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Encoder;
 
 public static class Encodings {
-    public static ProtoLiteral[] AtLeastOne(IEnumerable<ProtoLiteral> variables) {
-        return variables.ToArray();
+    public static ProtoLiteral[] AtLeastOne(ProtoLiteral[] literals) {
+        return literals.ToArray();
     }
-    public static List<ProtoLiteral[]> AtMostOne(IEnumerable<ProtoLiteral> variables) {
+
+    public static List<ProtoLiteral[]> AtMostOnePairwise(ProtoLiteral[] literals) {
         List<ProtoLiteral[]> clauses = new();
-        foreach (ProtoLiteral a in variables) {
-            foreach (ProtoLiteral b in variables) {
+        foreach (ProtoLiteral a in literals) {
+            foreach (ProtoLiteral b in literals) {
                 if (a.Equals(b)) {
                     continue;
                 }
@@ -23,9 +24,29 @@ public static class Encodings {
         }
         return clauses;
     }
-    public static List<ProtoLiteral[]> ExactlyOne(IEnumerable<ProtoLiteral> variables) {
-        var atMost = AtMostOne(variables);
-        atMost.Add(AtLeastOne(variables));
+    public static List<ProtoLiteral[]> ExactlyOnePairwise(ProtoLiteral[] literals) {
+        var atMost = AtMostOnePairwise(literals);
+        atMost.Add(AtLeastOne(literals));
+        return atMost;
+    }
+
+    public static List<ProtoLiteral[]> AtMostOneSequential(ProtoLiteral[] x, ProtoVariable1D s) {
+        List<ProtoLiteral[]> clauses = new();
+
+        clauses.Add(new ProtoLiteral[] { x[0].Neg, s[0] });
+        clauses.Add(new ProtoLiteral[] { x[x.Length - 1].Neg, s[x.Length - 2].Neg });
+
+        for (int i = 1; i < x.Length - 1; i++) {
+            clauses.Add(new ProtoLiteral[] { x[i].Neg, s[i] });
+            clauses.Add(new ProtoLiteral[] { s[i - 1].Neg, s[i] });
+            clauses.Add(new ProtoLiteral[] { x[i].Neg, s[i - 1].Neg });
+        }
+
+        return clauses;
+    }
+    public static List<ProtoLiteral[]> ExactlyOneSequential(ProtoLiteral[] literals, ProtoVariable1D aux) {
+        var atMost = AtMostOneSequential(literals, aux);
+        atMost.Add(AtLeastOne(literals));
         return atMost;
     }
 }

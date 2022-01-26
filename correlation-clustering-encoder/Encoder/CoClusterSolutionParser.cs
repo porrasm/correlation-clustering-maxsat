@@ -1,4 +1,5 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
+using CorrelationClusteringEncoder.Encoder.Implementations;
 using CorrelationClusteringEncoder.Encoding;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder;
 
-public class PairwiseClusteringSolution {
+public class CoClusterSolutionParser {
     #region fields
     private ProtoLiteralTranslator translation;
     private ProtoVariable2D coClusterVariable;
@@ -18,7 +19,7 @@ public class PairwiseClusteringSolution {
     private bool[] visited;
     #endregion
 
-    public PairwiseClusteringSolution(ProtoLiteralTranslator translator, int pointCount, ProtoVariable2D coClusterVariable, SATSolution solution) {
+    public CoClusterSolutionParser(ProtoLiteralTranslator translator, int pointCount, ProtoVariable2D coClusterVariable, SATSolution solution) {
         this.translation = translator;
         this.pointCount = pointCount;
         this.coClusterVariable = coClusterVariable;
@@ -34,20 +35,27 @@ public class PairwiseClusteringSolution {
         }
 
         for (int litIndex = 0; litIndex < solution.Assignments.Length; litIndex++) {
+            //Console.WriteLine(CrlClusteringLogEncoding.LiteralToString(litIndex + 1, solution.Assignments[litIndex]));
+            Console.WriteLine($"Literal {litIndex + 1} = {solution.Assignments[litIndex]}");
             if (!solution.Assignments[litIndex]) {
                 continue;
             }
 
             ProtoLiteral lit = translation.GetK(litIndex + 1);
+            //Console.WriteLine("TRUE: " + lit);
             // Assignments are 0 indexed
-            if (lit.Variable != 0) {
+            if (lit.Variable != coClusterVariable.variable) {
+                Console.WriteLine("Wrong var");
                 continue;
             }
 
             coClusterVariable.GetParameters(lit.Literal, out int i, out int j);
             if (i == j) {
+                Console.WriteLine("Same point");
                 continue;
             }
+
+            Console.WriteLine($"    Same cluster {i} <-> {j}");
 
             graph[i].Add(j);
             graph[j].Add(i);
@@ -89,7 +97,7 @@ public class PairwiseClusteringSolution {
         int[] clustering = new int[pointCount];
 
         for (int cluster = 0; cluster < clusters.Count; cluster++) {
-            foreach (int point in clusters[cluster]) { 
+            foreach (int point in clusters[cluster]) {
                 clustering[point] = cluster;
             }
         }

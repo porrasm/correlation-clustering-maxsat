@@ -77,6 +77,9 @@ public class MaxSATEncoding {
     }
 
     private string ClauseLine(Clause clause, ulong cost) {
+        if (clause.Comment != null) {
+            return $"c {clause.Comment}";
+        }
         return $"{cost} {string.Join(" ", clause.Literals)} 0";
     }
 

@@ -11,10 +11,13 @@ public struct Clause {
     public ulong Cost { get; set; }
     public int[] Literals { get; set; }
     public bool IsHard => Cost == 0;
+
+    public string? Comment;
     #endregion
 
-    public Clause(ulong cost, int[] literals) {
+    public Clause(ulong cost, int[] literals, string? comment = null) {
         Cost = cost;
         Literals = literals;
+        Comment = comment;
     }
 }

@@ -30,6 +30,17 @@ public class ProtoLiteralTranslator {
     public ProtoLiteral GetK(int value) => revDict[value];
 
     public Clause TranslateClause(ProtoClause clause) {
+        if (clause.Comment != null) {
+            return new Clause(clause.Cost, new int[] { }, clause.Comment);
+        }
         return new Clause(clause.Cost, clause.Literals.Select(lit => GetVAssignment(lit)).ToArray());
+    }
+
+    public override string ToString() {
+        StringBuilder sb = new StringBuilder();
+        foreach (var pair in dict) {
+            sb.AppendLine($"Translate: {pair.Key} = {pair.Value}");
+        }
+        return sb.ToString();
     }
 }

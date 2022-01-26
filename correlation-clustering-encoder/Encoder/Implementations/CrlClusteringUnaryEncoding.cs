@@ -9,21 +9,24 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public class CrlClusteringUnaryEncoding : IProtoEncoder {
+    #region fields
     private const byte Y_VAR_INDEX = 0;
     private const byte A_VAR_INDEX = 1;
     private const byte D_VAR_INDEX = 2;
+    private const byte CARDINALITY_AUX_VAR_INDEX = 3;
 
-    private ProtoVariable2D yVar, dVar;
+    private ProtoVariable2D yVar, dVar, cardinalityAuxVar;
     private ProtoVariable3D aVar;
 
     private int N, K;
 
-    public override byte VariableCount => 3;
+    public override byte VariableCount => 4;
+    public override string GetEncodingType() => "unary";
+    #endregion
 
     public CrlClusteringUnaryEncoding(IWeightFunction weights) : base(weights) {
     }
 
-    public override string GetEncodingType() => "unary";
 
     private void Init() {
         N = instance.DataPointCount;
@@ -32,9 +35,10 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
         yVar = new ProtoVariable2D(protoEncoding, Y_VAR_INDEX, N);
         aVar = new ProtoVariable3D(protoEncoding, A_VAR_INDEX, N, N);
         dVar = new ProtoVariable2D(protoEncoding, D_VAR_INDEX, N);
+        cardinalityAuxVar = new ProtoVariable2D(protoEncoding, CARDINALITY_AUX_VAR_INDEX, N);
     }
 
-    public override void ProtoEncode() {
+    protected override void ProtoEncode() {
         Init();
         ExactlyOneCluster();
 
@@ -75,8 +79,8 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
             for (int k = 0; k < K; k++) {
                 clusterClause[k] = yVar[k, i];
             }
-            // Exactly one cluster (pairwise, inefficient)
-            protoEncoding.AddHards(Encodings.ExactlyOne(clusterClause));
+            //protoEncoding.AddHards(Encodings.ExactlyOneSequential(clusterClause, cardinalityAuxVar.Generate1DVariable(i)));
+            protoEncoding.AddHards(Encodings.ExactlyOnePairwise(clusterClause));
         }
     }
 
@@ -134,7 +138,7 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
     }
 
 
-    public override CrlClusteringSolution GetSolution(SATSolution solution) {
+    protected override CrlClusteringSolution GetSolution(SATSolution solution) {
         int[] clustering = new int[N];
 
         for (int litIndex = 0; litIndex < solution.Assignments.Length; litIndex++) {
@@ -151,6 +155,8 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
             }
 
             yVar.GetParameters(lit.Literal, out int k, out int i);
+            Console.WriteLine($"point i: {i} cluster: {k}");
+
             clustering[i] = k;
         }
 
