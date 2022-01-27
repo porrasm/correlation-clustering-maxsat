@@ -8,8 +8,9 @@ namespace CorrelationClusteringEncoder.Clustering;
 
 public static class ClusterParser {
     public static CrlClusteringInstance FromFile(string file, int variableCountLimit = 0, Transformation t = default) {
+        file = file.Trim();
+        Console.WriteLine($"Reading clustering instance from: {file}");
         string extension = Path.GetExtension(file);
-        Console.WriteLine("Input file extension: " + extension);
         return extension switch {
             ".matrix" => FromMatrix(file),
             _ => FromTextFile(file, variableCountLimit, t)

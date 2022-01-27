@@ -41,7 +41,7 @@ public class CrlClusteringInstance {
 
     public CrlClusteringInstance(double[,] similarityMatrix) {
         if (similarityMatrix.GetLength(0) != similarityMatrix.GetLength(1)) {
-            Console.WriteLine("Invalid similarity matrix");
+            throw new Exception("Invalid similarity matrix");
         }
         this.similarityMatrix = similarityMatrix;
         DataPointCount = similarityMatrix.GetLength(0);
@@ -54,6 +54,16 @@ public class CrlClusteringInstance {
     private int GetEdgeCount() {
         int count = 0;
         foreach (Edge edge in Edges()) {
+            if (edge.Cost != 0) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private int GetEdgeCountSymmetric() {
+        int count = 0;
+        foreach (Edge edge in Edges_I_LessThan_J()) {
             if (edge.Cost != 0) {
                 count++;
             }
@@ -81,6 +91,15 @@ public class CrlClusteringInstance {
         }
     }
     #endregion
+
+    public override string ToString() {
+        StringBuilder sb = new();
+        sb.AppendLine("--------------------- Instance ---------------------");
+        sb.AppendLine($"    Data points                         : {DataPointCount}");
+        sb.AppendLine($"    Non-zero edge count                 : {EdgeCount}");
+        sb.AppendLine($"    Non-zero edge count (symmetric)     : {GetEdgeCountSymmetric()}");
+        return sb.ToString();
+    }
 }
 
 public struct Edge {

@@ -30,8 +30,6 @@ public class MinimumRangeMultiplied : IWeightFunction {
                 minimumDiffernce = diff;
             }
         }
-
-        Console.WriteLine("Minimum difference: " + minimumDiffernce);
     }
     public ulong GetWeight(double initialWeight) {
         return (ulong)(initialWeight * 1000);

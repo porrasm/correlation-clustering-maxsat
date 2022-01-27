@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
-public class CrlClusteringUnaryEncoding : IProtoEncoder {
+public class UnaryEncoding : IProtoEncoder {
     #region fields
     private const byte Y_VAR_INDEX = 0;
     private const byte A_VAR_INDEX = 1;
@@ -24,7 +24,7 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
     public override string GetEncodingType() => "unary";
     #endregion
 
-    public CrlClusteringUnaryEncoding(IWeightFunction weights) : base(weights) {
+    public UnaryEncoding(IWeightFunction weights) : base(weights) {
     }
 
 
@@ -73,7 +73,6 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
     }
 
     private void ExactlyOneCluster() {
-        // todo
         for (int i = 0; i < N; i++) {
             ProtoLiteral[] clusterClause = new ProtoLiteral[K];
             for (int k = 0; k < K; k++) {
@@ -155,7 +154,6 @@ public class CrlClusteringUnaryEncoding : IProtoEncoder {
             }
 
             yVar.GetParameters(lit.Literal, out int k, out int i);
-            Console.WriteLine($"point i: {i} cluster: {k}");
 
             clustering[i] = k;
         }

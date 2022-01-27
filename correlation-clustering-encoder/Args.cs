@@ -24,10 +24,13 @@ public class Args {
     [Option('t', "timeout", Required = false, HelpText = "The MaxSAT solver timeout in seconds.")]
     public int SolverTimeLimit { get; set; }
 
+    [Option("save", Required = false, HelpText = "Whether to save WCNF files and result files.")]
+    public bool Save { get; set; }
+
     [Option('e', "encodings", Required = false, Separator = ',', HelpText = "The set of encodings to use, leave empty for all.")]
     public IEnumerable<string>? Encodings { get; set; }
 
-    [Option("data-point-limit", Required = false, HelpText = "Maximum number of data points to use, leave empty from unlimited.")]
+    [Option("data-points", Required = false, HelpText = "Maximum number of data points to use, leave empty from unlimited.")]
     public int DataPointCountLimit { get; set; }
 
     public string WCNFFile(ICrlClusteringEncoder enc) => $"{InputFile}.{enc.GetEncodingType()}.wcnf";

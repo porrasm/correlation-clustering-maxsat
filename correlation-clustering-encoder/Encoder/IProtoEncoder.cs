@@ -27,22 +27,32 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     }
 
     public MaxSATEncoding Encode(CrlClusteringInstance instance) {
-        Console.WriteLine("CALLED ENCODE-------------------------------");
+        Console.WriteLine($"Begin encode: {GetEncodingType()}...");
         this.instance = instance;
+        Console.WriteLine("    Initialize weights...");
         weights.Initialize(instance);
+        Console.WriteLine("    Done.");
 
         protoEncoding = new(VariableCount);
+        Console.WriteLine("    Encoding...");
         ProtoEncode();
+        Console.WriteLine("    Encoding done.");
 
+        Console.WriteLine("    Create translation...");
         translation = protoEncoding.GenerateTranslation();
+        Console.WriteLine("    Created translation.");
 
+        Console.WriteLine("    Translating...");
         MaxSATEncoding encoding = new MaxSATEncoding();
         foreach (ProtoClause clause in protoEncoding.ProtoClauses) {
             encoding.AddClause(translation.TranslateClause(clause));
         }
+        Console.WriteLine("    Translation done.");
+
         protoEncoding.Clear();
         protoEncoding = null;
 
+        Console.WriteLine("Encoding done.");
         return encoding;
     }
 
@@ -59,7 +69,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     #endregion
 
     #region static
-    private const string DEFAULT_ENCODINGS = "transitive logarithmic unary";
+    private const string DEFAULT_ENCODINGS = "transitive unary binary";
     public static ICrlClusteringEncoder[] GetEncodings(IWeightFunction weights, params string[]? encodingTypes) {
         if (encodingTypes == null || encodingTypes.Length == 0) {
             return GetEncodings(weights, DEFAULT_ENCODINGS.Split());
@@ -74,9 +84,9 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
 
     private static ICrlClusteringEncoder GetEncoding(string encodingType, IWeightFunction weights) {
         return encodingType.Trim() switch {
-            "transitive" => new CrlClusteringTransitiveEncoding(weights),
-            "unary" => new CrlClusteringUnaryEncoding(weights),
-            "logarithmic" => new CrlClusteringLogEncoding(weights),
+            "transitive" => new TransitiveEncoding(weights),
+            "unary" => new UnaryEncoding(weights),
+            "binary" => new BinaryEncoding(weights),
             _ => throw new Exception("Unknown encoding: " + encodingType)
         };
     }

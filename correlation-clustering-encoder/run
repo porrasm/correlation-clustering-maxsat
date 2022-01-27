@@ -1,0 +1,1 @@
+﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -s /mnt/p/Stuff/School/gradu/projects/dependencies/maxhs/bin/maxhs --solver-flag printSoln $@

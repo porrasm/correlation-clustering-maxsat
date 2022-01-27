@@ -35,27 +35,21 @@ public class CoClusterSolutionParser {
         }
 
         for (int litIndex = 0; litIndex < solution.Assignments.Length; litIndex++) {
-            //Console.WriteLine(CrlClusteringLogEncoding.LiteralToString(litIndex + 1, solution.Assignments[litIndex]));
-            Console.WriteLine($"Literal {litIndex + 1} = {solution.Assignments[litIndex]}");
             if (!solution.Assignments[litIndex]) {
                 continue;
             }
 
-            ProtoLiteral lit = translation.GetK(litIndex + 1);
-            //Console.WriteLine("TRUE: " + lit);
             // Assignments are 0 indexed
+            ProtoLiteral lit = translation.GetK(litIndex + 1);
+
             if (lit.Variable != coClusterVariable.variable) {
-                Console.WriteLine("Wrong var");
                 continue;
             }
 
             coClusterVariable.GetParameters(lit.Literal, out int i, out int j);
             if (i == j) {
-                Console.WriteLine("Same point");
                 continue;
             }
-
-            Console.WriteLine($"    Same cluster {i} <-> {j}");
 
             graph[i].Add(j);
             graph[j].Add(i);

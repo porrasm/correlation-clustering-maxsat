@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
-internal class CrlClusteringLogEncoding : IProtoEncoder {
+internal class BinaryEncoding : IProtoEncoder {
     #region fields
-    public static CrlClusteringLogEncoding DEBUG_INSTANCE;
-
     private const byte BIT_VAR_INDEX = 0;
     private const byte CO_CLUSTER_VAR_INDEX = 1;
     private const byte EQ_VAR_INDEX = 2;
@@ -24,16 +22,13 @@ internal class CrlClusteringLogEncoding : IProtoEncoder {
     private ProtoVariable3D eqVar;
     #endregion
 
-    public CrlClusteringLogEncoding(IWeightFunction weights) : base(weights) { }
+    public BinaryEncoding(IWeightFunction weights) : base(weights) { }
 
-    public override string GetEncodingType() => "logarithmic";
+    public override string GetEncodingType() => "binary";
 
     private void Init() {
-        DEBUG_INSTANCE = this;
         int n = instance.DataPointCount;
         a = Matht.Log2Ceil(n);
-        Console.WriteLine("A: " + a);
-        Console.WriteLine("N: " + n);
 
         bitVar = new ProtoVariable2D(protoEncoding, BIT_VAR_INDEX, n);
         coClusterVar = new ProtoVariable2D(protoEncoding, CO_CLUSTER_VAR_INDEX, n);
@@ -59,7 +54,6 @@ internal class CrlClusteringLogEncoding : IProtoEncoder {
             }
 
             AddCoClusterConstraints(coClusterVar[edge.I, edge.J], edge.Cost);
-
         }
     }
 
@@ -77,7 +71,8 @@ internal class CrlClusteringLogEncoding : IProtoEncoder {
     }
 
     private void EqualityAndSameCluster() {
-        foreach (Edge edge in instance.Edges()) {
+        // TODO CHANGED
+        foreach (Edge edge in instance.Edges_I_LessThan_J()) {
             if (edge.I != edge.J) {
                 SameCluster(edge.I, edge.J);
             }
@@ -94,11 +89,7 @@ internal class CrlClusteringLogEncoding : IProtoEncoder {
     }
 
     private void SameCluster(int i, int j) {
-        // S_ij <-> (EQ_ij1 & ... & EQ_ija)
-        protoEncoding.CommentHard($"SAME CLUSTER ({i}, {j})");
-
         ProtoLiteral[] clause = new ProtoLiteral[a + 1];
-
         ProtoLiteral s_ij = coClusterVar[i, j];
 
         for (int k = 0; k < a; k++) {
@@ -113,7 +104,6 @@ internal class CrlClusteringLogEncoding : IProtoEncoder {
     }
 
     private void Equality(int k, int i, int j) {
-        protoEncoding.CommentHard($"EQUALITY ({k}, {i}, {j})");
         foreach (ProtoLiteral[] clause in EqualityClauses(k, i, j)) {
             protoEncoding.AddHard(clause);
         }
@@ -152,27 +142,6 @@ internal class CrlClusteringLogEncoding : IProtoEncoder {
         }
 
         protoEncoding.AddHard(literals);
-    }
-
-    public string DEBUG_LITERAL_VAL(ProtoLiteral lit) {
-        if (lit.Variable == BIT_VAR_INDEX) {
-            bitVar.GetParameters(lit.Literal, out int i, out int j);
-            return $"bitVar[{i}, {j}]";
-        }
-        if (lit.Variable == CO_CLUSTER_VAR_INDEX) {
-            coClusterVar.GetParameters(lit.Literal, out int i, out int j);
-            return $"coCluster[{i}, {j}]";
-        }
-        if (lit.Variable == EQ_VAR_INDEX) {
-            eqVar.GetParameters(lit.Literal, out int k, out int i, out int j);
-            return $"eqVar[{k}, {i}, {j}]";
-        }
-        return "Unknown";
-    }
-
-    public static string LiteralToString(int literal, bool value) {
-        ProtoLiteral lit = DEBUG_INSTANCE.translation.GetK(literal);
-        return $"Assignment {literal}={value} -> {lit} = {DEBUG_INSTANCE.DEBUG_LITERAL_VAL(lit)}";
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {

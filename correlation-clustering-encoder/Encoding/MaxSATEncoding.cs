@@ -16,6 +16,8 @@ public class MaxSATEncoding {
     private List<Clause> softClauses = new();
 
     public int ClauseCount => hardClauses.Count + softClauses.Count;
+    public int HardCount => hardClauses.Count;
+    public int SoftCount => softClauses.Count;
     #endregion
 
     #region add

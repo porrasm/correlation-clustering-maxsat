@@ -51,9 +51,7 @@ public class ProtoEncoding {
         ProtoLiteralTranslator translation = new();
         int i = 1;
         for (int v = 0; v < variables.Length; v++) {
-            Console.WriteLine($"Variable count: {v}: {variables[v].Count}");
             foreach (ProtoLiteral lit in variables[v]) {
-                //Console.WriteLine($"Tranlate: literal {i} = proto {lit} = {CrlClusteringLogEncoding.DEBUG_INSTANCE.DEBUG_LITERAL_VAL(lit)}");
                 translation.Add(lit, i);
                 i++;
             }

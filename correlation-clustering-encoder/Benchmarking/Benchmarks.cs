@@ -28,32 +28,28 @@ public static class Benchmarks {
 
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("----------------------------------------------------");
-        sb.AppendLine("\nResults:");
+        sb.AppendLine("\nResults:\n");
+        sb.AppendLine(cluster.ToString());
 
         foreach (BenchResult result in results) {
-            sb.AppendLine("----------------------------------------------------");
-            sb.AppendLine($"    Encoding type : {result.Encoding.GetEncodingType()}");
-            sb.AppendLine($"    Completed     : {result.Completed}");
-            sb.AppendLine($"    Encoding time : {result.EncodingTimeMS}ms");
-            if (!result.Completed) {
-                continue;
-            }
-            sb.AppendLine($"    Solving time  : {result.SolvingTimeMs}ms");
-            sb.AppendLine($"    Solver status : {result.SATSolution.Solution}");
-            sb.AppendLine($"    Cost          : {result.SATSolution.Cost}");
+            sb.AppendLine(result.ToString());
 
-            CrlClusteringSolution sol = result.Encoding.GetSolution(cluster, result.SATSolution);
-            sol.WriteClusteringToFile(Args.Instance.OutputFile(result.Encoding));
+            if (result.Completed && Args.Instance.Save) {
+                CrlClusteringSolution sol = result.Encoding.GetSolution(cluster, result.SATSolution);
+                sol.WriteClusteringToFile(Args.Instance.OutputFile(result.Encoding));
+            }
         }
 
         Console.WriteLine(sb.ToString());
-        File.WriteAllText($"{Args.Instance.InputFile}.results.txt", sb.ToString());
+        if (Args.Instance.Save) {
+            File.WriteAllText($"{Args.Instance.InputFile}.results.txt", sb.ToString());
+        }
     }
 
     public static BenchResult Benchmark(CrlClusteringInstance cluster, ICrlClusteringEncoder encoding) {
         Console.WriteLine($"\nEncoding '{encoding.GetEncodingType()}' with {cluster.DataPointCount} data points and {cluster.EdgeCount} edges");
 
-        BenchEncode(cluster, encoding, out long encodingTimeMs);
+        BenchEncode(cluster, encoding, out ulong encodingTimeMs, out ulong literals, out ulong hards, out ulong softs);
         Console.WriteLine($"Encoding time: {encodingTimeMs}ms");
 
         Console.WriteLine($"\nSolving WCNF with: {Args.Instance.MaxSATSolver}");
@@ -62,7 +58,11 @@ public static class Benchmarks {
         }
 
 
-        string solverOutput = BenchProcess(GetSolverProcess(encoding), Args.Instance.SolverTimeLimit, out long solvingTimeMs, out bool graceful);
+        string solverOutput = BenchProcess(GetSolverProcess(encoding), Args.Instance.SolverTimeLimit, out ulong solvingTimeMs, out bool graceful);
+
+        if (!Args.Instance.Save) {
+            File.Delete(Args.Instance.WCNFFile(encoding));
+        }
 
         if (!graceful) {
             Console.WriteLine("Solver could not finish in time");
@@ -74,18 +74,31 @@ public static class Benchmarks {
         Console.WriteLine($"\nGetting solution for {encoding.GetEncodingType()}...");
         SATSolution solution = new SATSolution(solverOutput);
 
-        return new BenchResult(encoding, solution, true, encodingTimeMs, solvingTimeMs);
+        return new BenchResult(encoding) {
+            SATSolution = solution,
+            Completed = true,
+            EncodingTimeMS = encodingTimeMs,
+            SolvingTimeMs = solvingTimeMs,
+            LiteralCount = literals,
+            HardCount = hards,
+            SoftCount = softs
+        };
     }
 
-    private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out long elapsedMs) {
+    private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out ulong elapsedMs, out ulong literalCount, out ulong hardCount, out ulong softCount) {
         Stopwatch sw = Stopwatch.StartNew();
         MaxSATEncoding maxsat = encoding.Encode(instance);
         sw.Stop();
-        elapsedMs = sw.ElapsedMilliseconds;
+        elapsedMs = (ulong)sw.ElapsedMilliseconds;
+
+        literalCount = (ulong)maxsat.LiteralCount;
+        hardCount = (ulong)maxsat.HardCount;
+        softCount = (ulong)maxsat.SoftCount;
+
         maxsat.ConvertToWCNF(Args.Instance.WCNFFile(encoding));
-        Console.WriteLine($"Created WCNF file: {Args.Instance.WCNFFile}");
+        Console.WriteLine($"Created WCNF file: {Args.Instance.WCNFFile(encoding)}");
     }
-    public static string BenchProcess(Process p, long timeLimitMs, out long elapsedTime, out bool gracefulExit) {
+    public static string BenchProcess(Process p, long timeLimitMs, out ulong elapsedTime, out bool gracefulExit) {
         Stopwatch watch = Stopwatch.StartNew();
         p.Start();
 
@@ -101,7 +114,7 @@ public static class Benchmarks {
             gracefulExit = true;
         }
 
-        elapsedTime = watch.ElapsedMilliseconds;
+        elapsedTime = (ulong)watch.ElapsedMilliseconds;
         return p.StandardOutput.ReadToEnd();
     }
 
@@ -120,19 +133,45 @@ public static class Benchmarks {
         return $"{wcnf} -{Args.Instance.MaxSATSolverFlag}";
     }
 
-    public struct BenchResult {
+    public class BenchResult {
         public ICrlClusteringEncoder Encoding { get; }
-        public SATSolution SATSolution { get; }
-        public bool Completed { get; }
-        public long EncodingTimeMS { get; }
-        public long SolvingTimeMs { get; }
+        public SATSolution? SATSolution { get; set; }
+        public bool Completed { get; set; }
+        public ulong EncodingTimeMS { get; set; }
+        public ulong SolvingTimeMs { get; set; }
+        public ulong LiteralCount { get; set; }
+        public ulong HardCount { get; set; }
+        public ulong SoftCount { get; set; }
 
-        public BenchResult(ICrlClusteringEncoder encoding, SATSolution sATSolution = null, bool completed = false, long encodingTimeMS = 0, long solvingTimeMs = 0) {
-            SATSolution = sATSolution;
+        public BenchResult(ICrlClusteringEncoder encoding) {
             Encoding = encoding;
-            Completed = completed;
-            EncodingTimeMS = encodingTimeMS;
-            SolvingTimeMs = solvingTimeMs;
         }
+
+        public override string ToString() {
+            StringBuilder sb = new();
+            sb.AppendLine("---------------------- Result ----------------------");
+            sb.AppendLine($"    Encoding type : {Encoding.GetEncodingType()}");
+            sb.AppendLine($"    Completed     : {Completed}");
+            sb.AppendLine($"    Encoding time : {MsToSeconds(EncodingTimeMS)}");
+
+            if (SATSolution == null || !Completed) {
+                return sb.ToString();
+            }
+
+            sb.AppendLine($"    Solving time  : {MsToSeconds(SolvingTimeMs)}");
+            sb.AppendLine($"    Solver status : {SATSolution.Solution}");
+            sb.AppendLine($"    Literals      : {ValueToString(LiteralCount)}");
+            sb.AppendLine($"    Hard clauses  : {ValueToString(HardCount)}");
+            sb.AppendLine($"    Soft clauses  : {ValueToString(SoftCount)}");
+            sb.AppendLine($"    Cost          : {ValueToString(SATSolution.Cost)}");
+
+            return sb.ToString();
+        }
+
+        private string MsToSeconds(ulong ms) {
+            double sec = ms / 1000.0;
+            return sec.ToString("N2") + "s";
+        }
+        private string ValueToString(ulong val) => val.ToString("N0");
     }
 }

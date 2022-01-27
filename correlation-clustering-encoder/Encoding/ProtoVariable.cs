@@ -57,9 +57,7 @@ public class ProtoVariable2D {
                 FixIndices(ref dim0, ref dim1);
             }
             ProtoLiteral lit = new ProtoLiteral(variable, (dim0 * dim1Size) + dim1);
-            if (encoding.Register(lit)) {
-                Console.WriteLine($"Register: [{dim0}, {dim1}]");
-            }
+            encoding.Register(lit);
             return lit;
         }
     }

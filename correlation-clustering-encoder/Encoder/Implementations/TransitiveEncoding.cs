@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
-public class CrlClusteringTransitiveEncoding : IProtoEncoder {
+public class TransitiveEncoding : IProtoEncoder {
     #region fields
     private ProtoVariable2D coClusterVar;
     public override byte VariableCount => 1;
@@ -16,7 +16,7 @@ public class CrlClusteringTransitiveEncoding : IProtoEncoder {
     #endregion
 
 
-    public CrlClusteringTransitiveEncoding(IWeightFunction weights) : base(weights) { }
+    public TransitiveEncoding(IWeightFunction weights) : base(weights) { }
 
 
     protected override void ProtoEncode() {
@@ -38,16 +38,11 @@ public class CrlClusteringTransitiveEncoding : IProtoEncoder {
     }
 
     private void Transitivity(int i, int j, int k) {
-        protoEncoding.CommentHard($"(i={i}, j={j}, k={k})");
-        Console.WriteLine("X[i, j]");
         ProtoLiteral x_ij = coClusterVar[i, j];
-        Console.WriteLine("X[j, k]");
         ProtoLiteral x_jk = coClusterVar[j, k];
-        Console.WriteLine("X[i, k]");
         ProtoLiteral x_ik = coClusterVar[i, k];
 
         // Hard transitivity for distinct 3 literals
-        //protoEncoding.CommentHard($"Transitivity: (-x[{edge.I},{edge.J}], -x[{edge.J},{k}], x[{edge.I},{k}])");
         protoEncoding.AddHard(x_ij.Neg, x_jk.Neg, x_ik);
     }
 
@@ -55,28 +50,24 @@ public class CrlClusteringTransitiveEncoding : IProtoEncoder {
         coClusterVar.GetParameters(x_ij.Literal, out int i, out int j);
         // Hard must-link
         if (cost == double.PositiveInfinity) {
-            protoEncoding.CommentHard($"Must link {i}, {j}");
             protoEncoding.AddHard(x_ij);
             return;
         }
 
         // Hard cannot-link
         if (cost == double.NegativeInfinity) {
-            protoEncoding.CommentHard($"Cannot link {i}, {j}");
             protoEncoding.AddHard(x_ij.Neg);
             return;
         }
 
         // Soft should link
         if (cost > 0) {
-            protoEncoding.CommentSoft($"Should link {i}, {j}");
             protoEncoding.AddSoft(weights.GetWeight(cost), x_ij);
             return;
         }
 
         // Soft should not link
         if (cost < 0) {
-            protoEncoding.CommentSoft($"Shouldn't link {i}, {j}");
             protoEncoding.AddSoft(weights.GetWeight(-cost), x_ij.Neg);
         }
     }
