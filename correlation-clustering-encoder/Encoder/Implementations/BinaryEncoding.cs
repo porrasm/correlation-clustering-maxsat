@@ -10,12 +10,6 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 internal class BinaryEncoding : IProtoEncoder {
     #region fields
-    private const byte BIT_VAR_INDEX = 0;
-    private const byte CO_CLUSTER_VAR_INDEX = 1;
-    private const byte EQ_VAR_INDEX = 2;
-
-    public override byte VariableCount => 3;
-
     private int a;
 
     private ProtoVariable2D bitVar, coClusterVar;
@@ -30,9 +24,9 @@ internal class BinaryEncoding : IProtoEncoder {
         int n = instance.DataPointCount;
         a = Matht.Log2Ceil(n);
 
-        bitVar = new ProtoVariable2D(protoEncoding, BIT_VAR_INDEX, n);
-        coClusterVar = new ProtoVariable2D(protoEncoding, CO_CLUSTER_VAR_INDEX, n);
-        eqVar = new ProtoVariable3D(protoEncoding, EQ_VAR_INDEX, n, n);
+        bitVar = new ProtoVariable2D(protoEncoding, n);
+        coClusterVar = new ProtoVariable2D(protoEncoding, n);
+        eqVar = new ProtoVariable3D(protoEncoding, n, n);
     }
 
     protected override void ProtoEncode() {

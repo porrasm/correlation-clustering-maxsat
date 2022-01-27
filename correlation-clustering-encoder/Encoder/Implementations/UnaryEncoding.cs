@@ -10,17 +10,11 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public class UnaryEncoding : IProtoEncoder {
     #region fields
-    private const byte Y_VAR_INDEX = 0;
-    private const byte A_VAR_INDEX = 1;
-    private const byte D_VAR_INDEX = 2;
-    private const byte CARDINALITY_AUX_VAR_INDEX = 3;
-
     private ProtoVariable2D yVar, dVar, cardinalityAuxVar;
     private ProtoVariable3D aVar;
 
     private int N, K;
 
-    public override byte VariableCount => 4;
     public override string GetEncodingType() => "unary";
     #endregion
 
@@ -32,10 +26,10 @@ public class UnaryEncoding : IProtoEncoder {
         N = instance.DataPointCount;
         K = N;
 
-        yVar = new ProtoVariable2D(protoEncoding, Y_VAR_INDEX, N);
-        aVar = new ProtoVariable3D(protoEncoding, A_VAR_INDEX, N, N);
-        dVar = new ProtoVariable2D(protoEncoding, D_VAR_INDEX, N);
-        cardinalityAuxVar = new ProtoVariable2D(protoEncoding, CARDINALITY_AUX_VAR_INDEX, N);
+        yVar = new ProtoVariable2D(protoEncoding, N);
+        aVar = new ProtoVariable3D(protoEncoding, N, N);
+        dVar = new ProtoVariable2D(protoEncoding, N);
+        cardinalityAuxVar = new ProtoVariable2D(protoEncoding, N);
     }
 
     protected override void ProtoEncode() {
@@ -149,7 +143,7 @@ public class UnaryEncoding : IProtoEncoder {
             ProtoLiteral lit = translation.GetK(litIndex + 1);
 
             // Assignments are 0 indexed
-            if (lit.Variable != Y_VAR_INDEX) {
+            if (lit.Variable != yVar.variable) {
                 continue;
             }
 

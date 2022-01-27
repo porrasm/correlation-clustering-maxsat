@@ -9,16 +9,17 @@ namespace CorrelationClusteringEncoder.Encoding;
 
 public class ProtoEncoding {
     #region fields
-    private HashSet<ProtoLiteral>[] variables;
-    public List<ProtoClause> ProtoClauses { get; private set; }
+    private List<HashSet<ProtoLiteral>> variables = new();
+    public List<ProtoClause> ProtoClauses { get; private set; } = new();
     #endregion
 
-    public ProtoEncoding(byte variableCount) {
-        variables = new HashSet<ProtoLiteral>[variableCount];
-        ProtoClauses = new();
-        for (int i = 0; i < variableCount; i++) {
-            variables[i] = new();
+    public byte CreateNewVariable() {
+        if (variables.Count >= 127) {
+            throw new Exception("Maximum variable count reached");
         }
+        byte newIndex = (byte)variables.Count;
+        variables.Add(new());
+        return newIndex;
     }
 
     public ProtoLiteral GetLiteral(byte variableIndex, int literalIndex) {
@@ -47,16 +48,14 @@ public class ProtoEncoding {
     public void CommentSoft(string c) {
         ProtoClauses.Add(ProtoClause.CommentClause(c, 1));
     }
-    public ProtoLiteralTranslator GenerateTranslation() {
-        ProtoLiteralTranslator translation = new();
+    public void GenerateTranslation(ProtoLiteralTranslator translation) {
         int i = 1;
-        for (int v = 0; v < variables.Length; v++) {
+        for (int v = 0; v < variables.Count; v++) {
             foreach (ProtoLiteral lit in variables[v]) {
                 translation.Add(lit, i);
                 i++;
             }
         }
-        return translation;
     }
 
     public void Clear() {

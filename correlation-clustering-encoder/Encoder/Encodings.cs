@@ -30,7 +30,7 @@ public static class Encodings {
         return atMost;
     }
 
-    public static List<ProtoLiteral[]> AtMostOneSequential(ProtoLiteral[] x, ProtoVariable1D s) {
+    public static List<ProtoLiteral[]> AtMostOneSequential(ProtoLiteral[] x, ProtoVariable s) {
         List<ProtoLiteral[]> clauses = new();
 
         clauses.Add(new ProtoLiteral[] { x[0].Neg, s[0] });
@@ -44,7 +44,7 @@ public static class Encodings {
 
         return clauses;
     }
-    public static List<ProtoLiteral[]> ExactlyOneSequential(ProtoLiteral[] literals, ProtoVariable1D aux) {
+    public static List<ProtoLiteral[]> ExactlyOneSequential(ProtoLiteral[] literals, ProtoVariable aux) {
         var atMost = AtMostOneSequential(literals, aux);
         atMost.Add(AtLeastOne(literals));
         return atMost;

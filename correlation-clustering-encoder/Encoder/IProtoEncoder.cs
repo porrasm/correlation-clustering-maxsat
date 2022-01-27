@@ -17,10 +17,6 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     protected ProtoLiteralTranslator translation;
     #endregion
 
-    protected abstract class Test {
-        public abstract void TestVoid();
-    }
-
     public IProtoEncoder(IWeightFunction weights) {
         this.weights = weights;
         instance = new CrlClusteringInstance(0, 0, 0);
@@ -33,13 +29,14 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
         weights.Initialize(instance);
         Console.WriteLine("    Done.");
 
-        protoEncoding = new(VariableCount);
+        protoEncoding = new();
         Console.WriteLine("    Encoding...");
         ProtoEncode();
         Console.WriteLine("    Encoding done.");
 
         Console.WriteLine("    Create translation...");
-        translation = protoEncoding.GenerateTranslation();
+        translation = new();
+        protoEncoding.GenerateTranslation(translation);
         Console.WriteLine("    Created translation.");
 
         Console.WriteLine("    Translating...");
@@ -62,7 +59,6 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     }
 
     #region abstract
-    public abstract byte VariableCount { get; }
     public abstract string GetEncodingType();
     protected abstract void ProtoEncode();
     protected abstract CrlClusteringSolution GetSolution(SATSolution solution);

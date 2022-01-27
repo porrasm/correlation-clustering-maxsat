@@ -10,12 +10,8 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public class OrderEncoding : IProtoEncoder {
     #region fields
-    private const byte ORDER_VAR_INDEX = 0;
-    private const byte CO_CLUSTER_VAR_INDEX = 1;
-
     private ProtoVariable2D orderVar, coClusterVar;
 
-    public override byte VariableCount => 1;
     public override string GetEncodingType() => "order";
     #endregion
 
@@ -23,8 +19,8 @@ public class OrderEncoding : IProtoEncoder {
     }
 
     protected override void ProtoEncode() {
-        orderVar = new ProtoVariable2D(protoEncoding, ORDER_VAR_INDEX, instance.DataPointCount);
-        coClusterVar = new ProtoVariable2D(protoEncoding, CO_CLUSTER_VAR_INDEX, instance.DataPointCount);
+        orderVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount);
+        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount);
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {

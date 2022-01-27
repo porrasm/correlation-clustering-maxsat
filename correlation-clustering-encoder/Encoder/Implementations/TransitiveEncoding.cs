@@ -11,7 +11,6 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 public class TransitiveEncoding : IProtoEncoder {
     #region fields
     private ProtoVariable2D coClusterVar;
-    public override byte VariableCount => 1;
     public override string GetEncodingType() => "transitive";
     #endregion
 
@@ -20,7 +19,7 @@ public class TransitiveEncoding : IProtoEncoder {
 
 
     protected override void ProtoEncode() {
-        coClusterVar = new ProtoVariable2D(protoEncoding, 0, instance.DataPointCount, true);
+        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, true);
 
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
             ProtoLiteral x_ij = coClusterVar[edge.I, edge.J];

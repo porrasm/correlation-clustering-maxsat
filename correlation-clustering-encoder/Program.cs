@@ -14,3 +14,4 @@ Parser.Default.ParseArguments<Args>(args).WithParsed(parsed => {
 }).WithNotParsed(parse => {
     Console.WriteLine("Incorrect input parameters. Exiting application.");
 });
+

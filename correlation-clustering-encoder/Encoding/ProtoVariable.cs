@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoding;
 
-public class ProtoVariable1D {
+public class ProtoVariable {
     #region fields
     private ProtoEncoding encoding;
     private int offset;
     public byte variable { get; }
     #endregion
 
-    public ProtoVariable1D(ProtoEncoding encoding, byte variable, int offset = 0) {
+    public ProtoVariable(ProtoEncoding encoding, byte variable, int offset) {
         this.encoding = encoding;
         this.variable = variable;
         this.offset = offset;
@@ -40,9 +40,9 @@ public class ProtoVariable2D {
     private bool symmetric;
     #endregion
 
-    public ProtoVariable2D(ProtoEncoding encoding, byte variable, int dim1Size, bool symmetric = false) {
+    public ProtoVariable2D(ProtoEncoding encoding, int dim1Size, bool symmetric = false) {
         this.encoding = encoding;
-        this.variable = variable;
+        this.variable = encoding.CreateNewVariable();
         this.dim1Size = dim1Size;
         this.symmetric = symmetric;
     }
@@ -68,9 +68,9 @@ public class ProtoVariable2D {
         dim1 = dim1 > dim0s ? dim1 : dim0s;
     }
 
-    public ProtoVariable1D Generate1DVariable(int index) {
+    public ProtoVariable Generate1DVariable(int index) {
         int offset = index * dim1Size;
-        return new ProtoVariable1D(encoding, variable, offset);
+        return new ProtoVariable(encoding, variable, offset);
     }
 
     public void GetParameters(int literalIndex, out int dim0, out int dim1) {
@@ -86,9 +86,9 @@ public class ProtoVariable3D {
     private int dim1Size, dim2Size;
     #endregion
 
-    public ProtoVariable3D(ProtoEncoding encoding, byte variable, int dim1Size, int dim2Size) {
+    public ProtoVariable3D(ProtoEncoding encoding, int dim1Size, int dim2Size) {
         this.encoding = encoding;
-        this.variable = variable;
+        this.variable = encoding.CreateNewVariable();
         this.dim1Size = dim1Size;
         this.dim2Size = dim2Size;
     }
