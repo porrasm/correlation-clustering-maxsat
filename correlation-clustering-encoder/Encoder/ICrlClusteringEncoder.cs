@@ -12,6 +12,6 @@ namespace CorrelationClusteringEncoder;
 
 public interface ICrlClusteringEncoder {
     public string GetEncodingType();
-    MaxSATEncoding Encode(CrlClusteringInstance instance);
+    SATEncoding Encode(CrlClusteringInstance instance);
     CrlClusteringSolution GetSolution(CrlClusteringInstance instance, SATSolution solution);
 }

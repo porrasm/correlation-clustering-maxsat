@@ -21,9 +21,51 @@ public class OrderEncoding : IProtoEncoder {
     protected override void ProtoEncode() {
         orderVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount);
         coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount);
+        
+        OrderVarSemantics();
+    }
+
+    private void OrderVarSemantics() {
+        for (int i = 0; i < instance.DataPointCount; i++) {
+            // Cluster >= 0
+            protoEncoding.AddHard(orderVar[0, i]);
+
+            // Cluster < point count
+            protoEncoding.AddHard(orderVar[-instance.DataPointCount, i]);
+
+            for (int k = 0; k < instance.DataPointCount; k++) {
+                // Cluster >= k+1 -> Cluster >= k
+                protoEncoding.AddHard(orderVar[k + 1, i].Neg, orderVar[k, i]);
+            }
+        }
+    }
+
+    private void SameCluster() {
+        foreach (Edge edge in instance.Edges_I_LessThan_J()) {
+            ProtoLiteral s_ij = coClusterVar[edge.I, edge.J];
+
+
+            for (int k = 0; k < instance.DataPointCount; k++) {
+                ProtoLiteral auxSame = default;
+
+            }
+        }
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(translation, instance.DataPointCount, coClusterVar, solution).GetClustering(), true);
+        throw new NotImplementedException();
     }
 }
+
+
+/*
+ * Approach 1:
+ * 
+ * S_ij <-> all orders same
+ * -S_ij <-> at least one different
+ * 
+ * Approach 2:
+ * S_ij <-> change from 1 to 0 in same index
+ * -S_ij <-> change from 1 to 0 in different index
+ * 
+ */

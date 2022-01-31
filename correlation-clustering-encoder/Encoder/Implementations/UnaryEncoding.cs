@@ -72,8 +72,7 @@ public class UnaryEncoding : IProtoEncoder {
             for (int k = 0; k < K; k++) {
                 clusterClause[k] = yVar[k, i];
             }
-            //protoEncoding.AddHards(Encodings.ExactlyOneSequential(clusterClause, cardinalityAuxVar.Generate1DVariable(i)));
-            protoEncoding.AddHards(Encodings.ExactlyOnePairwise(clusterClause));
+            protoEncoding.AddHards(Encodings.ExactlyOneSequential(clusterClause, cardinalityAuxVar.Generate1DVariable(i)));
         }
     }
 

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoding;
 
-public class MaxSATEncoding {
+public class SATEncoding {
     #region fields
     public int LiteralCount { get; private set; }
 

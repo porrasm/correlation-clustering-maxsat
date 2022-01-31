@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CorrelationClusteringEncoder.Encoding;
+namespace SimpleSAT.Encoding;
 
 public class SATSolution {
     #region fields
@@ -42,8 +42,8 @@ public class SATSolution {
     }
 
     private void ParseLines(string solverOutput, out string solution, out string assignments) {
-        solution = null;
-        assignments = null;
+        solution = "";
+        assignments = "";
 
         foreach (string line in solverOutput.Split('\n')) {
             if (line.Length == 0) {
@@ -52,16 +52,19 @@ public class SATSolution {
 
             if (line[0] == 's') {
                 solution = line.Substring(2);
+                continue;
             }
             if (line[0] == 'v') {
                 assignments = line.Substring(2);
+                continue;
             }
             if (line[0] == 'o') {
                 Cost = ulong.Parse(line.Substring(2));
+                continue;
             }
         }
 
-        if (solverOutput == null || solution == null) {
+        if (solverOutput.Length == 0 || solution.Length == 0) {
             throw new Exception("Invalid solution");
         }
     }

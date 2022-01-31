@@ -22,7 +22,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
         instance = new CrlClusteringInstance(0, 0, 0);
     }
 
-    public MaxSATEncoding Encode(CrlClusteringInstance instance) {
+    public SATEncoding Encode(CrlClusteringInstance instance) {
         Console.WriteLine($"Begin encode: {GetEncodingType()}...");
         this.instance = instance;
         Console.WriteLine("    Initialize weights...");
@@ -40,7 +40,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
         Console.WriteLine("    Created translation.");
 
         Console.WriteLine("    Translating...");
-        MaxSATEncoding encoding = new MaxSATEncoding();
+        SATEncoding encoding = new SATEncoding();
         foreach (ProtoClause clause in protoEncoding.ProtoClauses) {
             encoding.AddClause(translation.TranslateClause(clause));
         }

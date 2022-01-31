@@ -87,7 +87,7 @@ public static class Benchmarks {
 
     private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out ulong elapsedMs, out ulong literalCount, out ulong hardCount, out ulong softCount) {
         Stopwatch sw = Stopwatch.StartNew();
-        MaxSATEncoding maxsat = encoding.Encode(instance);
+        SATEncoding maxsat = encoding.Encode(instance);
         sw.Stop();
         elapsedMs = (ulong)sw.ElapsedMilliseconds;
 
