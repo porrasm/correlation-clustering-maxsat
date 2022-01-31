@@ -1,6 +1,7 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
 using CorrelationClusteringEncoder.Encoder.Implementations;
-using CorrelationClusteringEncoder.Encoding;
+using SimpleSAT.Encoding;
+using SimpleSAT.Proto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,31 +24,26 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     }
 
     public SATEncoding Encode(CrlClusteringInstance instance) {
-        Console.WriteLine($"Begin encode: {GetEncodingType()}...");
+        Console.WriteLine($"Begin '{GetEncodingType()}' encoding...");
         this.instance = instance;
-        Console.WriteLine("    Initialize weights...");
+        Console.WriteLine("    1 / 4 Initialize weights...");
         weights.Initialize(instance);
         Console.WriteLine("    Done.");
 
         protoEncoding = new();
-        Console.WriteLine("    Encoding...");
+        Console.WriteLine("    2 / 4 Encoding...");
         ProtoEncode();
         Console.WriteLine("    Encoding done.");
 
-        Console.WriteLine("    Create translation...");
-        translation = new();
-        protoEncoding.GenerateTranslation(translation);
+        Console.WriteLine("    3 / 4 Create translation...");
+        translation = new(protoEncoding);
         Console.WriteLine("    Created translation.");
 
-        Console.WriteLine("    Translating...");
-        SATEncoding encoding = new SATEncoding();
-        foreach (ProtoClause clause in protoEncoding.ProtoClauses) {
-            encoding.AddClause(translation.TranslateClause(clause));
-        }
+        Console.WriteLine("    4 / 4 Translating...");
+        SATEncoding encoding = new SATEncoding(protoEncoding, translation);
         Console.WriteLine("    Translation done.");
 
-        protoEncoding.Clear();
-        protoEncoding = null;
+        protoEncoding = new ProtoEncoding();
 
         Console.WriteLine("Encoding done.");
         return encoding;

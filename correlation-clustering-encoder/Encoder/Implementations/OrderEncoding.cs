@@ -1,5 +1,6 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
-using CorrelationClusteringEncoder.Encoding;
+using SimpleSAT.Encoding;
+using SimpleSAT.Proto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -43,7 +44,6 @@ public class OrderEncoding : IProtoEncoder {
     private void SameCluster() {
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
             ProtoLiteral s_ij = coClusterVar[edge.I, edge.J];
-
 
             for (int k = 0; k < instance.DataPointCount; k++) {
                 ProtoLiteral auxSame = default;

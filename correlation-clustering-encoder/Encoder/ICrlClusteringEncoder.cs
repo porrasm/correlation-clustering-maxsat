@@ -1,7 +1,8 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
 using CorrelationClusteringEncoder.Encoder;
 using CorrelationClusteringEncoder.Encoder.Implementations;
-using CorrelationClusteringEncoder.Encoding;
+using SimpleSAT.Encoding;
+using SimpleSAT.Proto;
 using System;
 using System.Collections.Generic;
 using System.Linq;

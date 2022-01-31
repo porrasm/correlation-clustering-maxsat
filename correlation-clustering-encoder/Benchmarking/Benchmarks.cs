@@ -1,5 +1,7 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
-using CorrelationClusteringEncoder.Encoding;
+using SimpleSAT;
+using SimpleSAT.Encoding;
+using SimpleSAT.Proto;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -72,7 +74,7 @@ public static class Benchmarks {
         Console.WriteLine($"Solve time: {solvingTimeMs}ms");
 
         Console.WriteLine($"\nGetting solution for {encoding.GetEncodingType()}...");
-        SATSolution solution = new SATSolution(solverOutput);
+        SATSolution solution = new SATSolution(SATFormat.WCNF_MAXSAT, solverOutput);
 
         return new BenchResult(encoding) {
             SATSolution = solution,
@@ -95,7 +97,7 @@ public static class Benchmarks {
         hardCount = (ulong)maxsat.HardCount;
         softCount = (ulong)maxsat.SoftCount;
 
-        maxsat.ConvertToWCNF(Args.Instance.WCNFFile(encoding));
+        maxsat.ConvertToCNF(SATFormat.WCNF_MAXSAT, Args.Instance.WCNFFile(encoding));
         Console.WriteLine($"Created WCNF file: {Args.Instance.WCNFFile(encoding)}");
     }
     public static string BenchProcess(Process p, long timeLimitMs, out ulong elapsedTime, out bool gracefulExit) {
