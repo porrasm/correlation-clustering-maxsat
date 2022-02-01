@@ -12,8 +12,6 @@ namespace CorrelationClusteringEncoder.Encoder;
 
 public class CoClusterSolutionParser {
     #region fields
-    private ProtoLiteralTranslator translation;
-    private ProtoVariable2D coClusterVariable;
     private int pointCount;
 
     private List<int>[] graph;
@@ -21,15 +19,13 @@ public class CoClusterSolutionParser {
     #endregion
 
     public CoClusterSolutionParser(ProtoLiteralTranslator translator, int pointCount, ProtoVariable2D coClusterVariable, SATSolution solution) {
-        this.translation = translator;
         this.pointCount = pointCount;
-        this.coClusterVariable = coClusterVariable;
 
-        graph = BuildClusterGraph(solution);
+        graph = BuildClusterGraph(solution, translator, coClusterVariable);
         visited = new bool[pointCount];
     }
 
-    private List<int>[] BuildClusterGraph(SATSolution solution) {
+    private List<int>[] BuildClusterGraph(SATSolution solution, ProtoLiteralTranslator translation, ProtoVariable2D coClusterVariable) {
         List<int>[] graph = new List<int>[pointCount];
         for (int i = 0; i < pointCount; i++) {
             graph[i] = new();
@@ -57,6 +53,12 @@ public class CoClusterSolutionParser {
         }
 
         return graph;
+    }
+
+    public CoClusterSolutionParser(int pointCount, List<int>[] graph) {
+        this.pointCount = pointCount;
+        this.graph = graph;
+        visited = new bool[pointCount];
     }
 
     public int[] GetClustering() {
@@ -99,4 +101,8 @@ public class CoClusterSolutionParser {
 
         return clustering;
     }
+
+    #region from cocluster var
+
+    #endregion
 }

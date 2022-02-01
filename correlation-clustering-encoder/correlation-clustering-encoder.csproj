@@ -15,9 +15,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Reference Include="SimpleSAT">
-			<HintPath>..\SimpleSAT\SimpleSAT\bin\Debug\net6.0\SimpleSAT.dll</HintPath>
-		</Reference>
+	  <Reference Include="SimpleSAT">
+	    <HintPath>..\..\SimpleSAT\SimpleSAT\bin\Debug\net6.0\SimpleSAT.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

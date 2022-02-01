@@ -14,21 +14,22 @@ public static class Program {
     static void Main(string[] args) {
         string inputProblemImage = args[0];
         string directory = Directory.GetParent(inputProblemImage).FullName;
+        string cnfDirectory = "P:\\Stuff\\School\\gradu\\projects\\correlation-clustering-encoder\\local";
 
         double[,] matrix = FromBitmap(inputProblemImage);
         byte[] bytes = Serializer.Serialize(matrix);
         File.WriteAllBytes($"{inputProblemImage}.matrix", bytes);
 
-        DeletePreviousSolutions(directory);
+        DeletePreviousSolutions(cnfDirectory);
 
         Console.WriteLine("Waiting for solution...");
-        while (!SolutionsExist(directory)) {
+        while (!SolutionsExist(cnfDirectory)) {
             Thread.Sleep(500);
         }
 
-        foreach (string file in Directory.GetFiles(directory)) {
+        foreach (string file in Directory.GetFiles(cnfDirectory)) {
             if (Path.GetFileName(file).EndsWith(".solution")) {
-                Visualize(inputProblemImage, file);
+                Visualize(inputProblemImage, file, directory);
             }
         }
     }
@@ -125,7 +126,7 @@ public static class Program {
         override public string ToString() => $"({X}, {Y})";
     }
 
-    public static void Visualize(string imageFile, string solutionFile) {
+    public static void Visualize(string imageFile, string solutionFile, string outputDir) {
         Console.WriteLine("Visualize " + solutionFile);
         Bitmap img = new Bitmap(imageFile);
 
@@ -146,7 +147,8 @@ public static class Program {
             }
         }
 
-        img.Save($"{solutionFile}.bmp");
+        string path = $"{outputDir}/{Path.GetFileName(solutionFile)}.bmp";
+        img.Save(path);
     }
 }
 

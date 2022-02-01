@@ -1,5 +1,6 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
 using CorrelationClusteringEncoder.Encoder.Implementations;
+using SimpleSAT;
 using SimpleSAT.Encoding;
 using SimpleSAT.Proto;
 using System;
@@ -33,6 +34,11 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
         protoEncoding = new();
         Console.WriteLine("    2 / 4 Encoding...");
         ProtoEncode();
+
+        if (Args.Instance.UseProto) {
+            Console.WriteLine("    2.1 / 4 Writing proto encoding to file...");
+            new CNFWriter<ProtoLiteral>(Args.Instance.ProtoWCNFFile(this), protoEncoding, -1).ConvertToWCNF();
+        }
         Console.WriteLine("    Encoding done.");
 
         Console.WriteLine("    3 / 4 Create translation...");
@@ -61,7 +67,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     #endregion
 
     #region static
-    private const string DEFAULT_ENCODINGS = "transitive unary binary";
+    private const string DEFAULT_ENCODINGS = "transitive unary binary order";
     public static ICrlClusteringEncoder[] GetEncodings(IWeightFunction weights, params string[]? encodingTypes) {
         if (encodingTypes == null || encodingTypes.Length == 0) {
             return GetEncodings(weights, DEFAULT_ENCODINGS.Split());
@@ -79,6 +85,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
             "transitive" => new TransitiveEncoding(weights),
             "unary" => new UnaryEncoding(weights),
             "binary" => new BinaryEncoding(weights),
+            "order" => new OrderEncoding(weights),
             _ => throw new Exception("Unknown encoding: " + encodingType)
         };
     }

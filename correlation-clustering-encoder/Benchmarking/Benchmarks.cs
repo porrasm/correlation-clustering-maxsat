@@ -12,15 +12,19 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Benchmarking;
 
 public static class Benchmarks {
-    public static void BenchmarkEncodings(CrlClusteringInstance cluster, bool parallel, params ICrlClusteringEncoder[] codecs) {
+    public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoder[] codecs) {
         Console.WriteLine($"Starting benchmarks on {codecs.Length} encodings...");
         List<BenchResult> results = new List<BenchResult>();
 
-        if (parallel) {
+        if (Args.Instance.Parallel) {
             Parallel.For(0, codecs.Length, (i) => {
                 ICrlClusteringEncoder? encoding = codecs[i];
                 results.Add(Benchmark(cluster, encoding));
             });
+            while (results.Count < codecs.Length) {
+                Console.WriteLine("Waiting for results...");
+                Thread.Sleep(250);
+            }
         } else {
             for (int i = 0; i < codecs.Length; i++) {
                 ICrlClusteringEncoder? encoding = codecs[i];
@@ -44,7 +48,7 @@ public static class Benchmarks {
 
         Console.WriteLine(sb.ToString());
         if (Args.Instance.Save) {
-            File.WriteAllText($"{Args.Instance.InputFile}.results.txt", sb.ToString());
+            File.WriteAllText(Args.Instance.ResultFile(), sb.ToString());
         }
     }
 
@@ -97,7 +101,7 @@ public static class Benchmarks {
         hardCount = (ulong)maxsat.HardCount;
         softCount = (ulong)maxsat.SoftCount;
 
-        maxsat.ConvertToCNF(SATFormat.WCNF_MAXSAT, Args.Instance.WCNFFile(encoding));
+        new CNFWriter<int>(Args.Instance.WCNFFile(encoding), maxsat, maxsat.LiteralCount, maxsat.GetIndexAfterTop()).ConvertToWCNF();
         Console.WriteLine($"Created WCNF file: {Args.Instance.WCNFFile(encoding)}");
     }
     public static string BenchProcess(Process p, long timeLimitMs, out ulong elapsedTime, out bool gracefulExit) {
