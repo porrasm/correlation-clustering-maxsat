@@ -1,1 +1,1 @@
-﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -i /mnt/p/Stuff/School/gradu/projects/_problems/debug-bmp/test.bmp.matrix -s /mnt/p/Stuff/School/gradu/projects/dependencies/maxhs/bin/maxhs --save 1 -t 300 --solver-flag printSoln --directory local $@
+﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -i /mnt/p/Stuff/School/gradu/projects/_problems/debug-bmp/test.bmp.matrix -s /mnt/p/Stuff/School/gradu/projects/dependencies/maxhs/bin/maxhs --save 1 --solver-flag printSoln --directory local $@

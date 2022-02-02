@@ -45,6 +45,9 @@ public static class Program {
             if (Path.GetFileName(file).EndsWith(".wcnf")) {
                 File.Delete(file);
             }
+            if (Path.GetFileName(file).EndsWith(".protowcnf")) {
+                File.Delete(file);
+            }
         }
     }
 

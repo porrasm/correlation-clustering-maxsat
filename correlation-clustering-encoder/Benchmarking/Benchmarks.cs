@@ -1,4 +1,5 @@
 ﻿using CorrelationClusteringEncoder.Clustering;
+using CorrelationClusteringEncoder.Encoder;
 using SimpleSAT;
 using SimpleSAT.Encoding;
 using SimpleSAT.Proto;
@@ -48,7 +49,7 @@ public static class Benchmarks {
 
         Console.WriteLine(sb.ToString());
         if (Args.Instance.Save) {
-            File.WriteAllText(Args.Instance.ResultFile(), sb.ToString());
+            File.WriteAllText(Args.Instance.GeneralOutputFile("results.txt"), sb.ToString());
         }
     }
 
@@ -72,13 +73,23 @@ public static class Benchmarks {
 
         if (!graceful) {
             Console.WriteLine("Solver could not finish in time");
-            return new BenchResult(encoding);
+            return new BenchResult(encoding) {
+                EncodingTimeMS = encodingTimeMs,
+                LiteralCount = literals,
+                HardCount = hards,
+                SoftCount = softs
+            };
         }
 
         Console.WriteLine($"Solve time: {solvingTimeMs}ms");
 
         Console.WriteLine($"\nGetting solution for {encoding.GetEncodingType()}...");
         SATSolution solution = new SATSolution(SATFormat.WCNF_MAXSAT, solverOutput);
+
+        if (Args.Instance.SaveAssignments && encoding is IProtoEncoder) {
+            IProtoEncoder protoEncoding = (IProtoEncoder)encoding;
+            Utils.SaveAssignments(Args.Instance.GeneralOutputFile("assignments"), solution.AsProtoLiterals(protoEncoding.Translation));
+        }
 
         return new BenchResult(encoding) {
             SATSolution = solution,
@@ -161,6 +172,9 @@ public static class Benchmarks {
             sb.AppendLine($"    Encoding time : {MsToSeconds(EncodingTimeMS)}");
 
             if (SATSolution == null || !Completed) {
+                sb.AppendLine($"    Literals      : {ValueToString(LiteralCount)}");
+                sb.AppendLine($"    Hard clauses  : {ValueToString(HardCount)}");
+                sb.AppendLine($"    Soft clauses  : {ValueToString(SoftCount)}");
                 return sb.ToString();
             }
 

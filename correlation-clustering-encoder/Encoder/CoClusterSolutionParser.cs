@@ -18,27 +18,23 @@ public class CoClusterSolutionParser {
     private bool[] visited;
     #endregion
 
-    public CoClusterSolutionParser(ProtoLiteralTranslator translator, int pointCount, ProtoVariable2D coClusterVariable, SATSolution solution) {
-        this.pointCount = pointCount;
+    public CoClusterSolutionParser(ProtoLiteral[] assignments, ProtoVariable2D coClusterVariable) {
+        this.pointCount = assignments.Length;
 
-        graph = BuildClusterGraph(solution, translator, coClusterVariable);
+        graph = BuildClusterGraph(assignments, coClusterVariable);
         visited = new bool[pointCount];
     }
 
-    private List<int>[] BuildClusterGraph(SATSolution solution, ProtoLiteralTranslator translation, ProtoVariable2D coClusterVariable) {
+    private List<int>[] BuildClusterGraph(ProtoLiteral[] assignments, ProtoVariable2D coClusterVariable) {
         List<int>[] graph = new List<int>[pointCount];
         for (int i = 0; i < pointCount; i++) {
             graph[i] = new();
         }
 
-        for (int litIndex = 0; litIndex < solution.Assignments.Length; litIndex++) {
-            if (!solution.Assignments[litIndex]) {
+        foreach (ProtoLiteral lit in assignments) {
+            if (lit.IsNegation) {
                 continue;
             }
-
-            // Assignments are 0 indexed
-            ProtoLiteral lit = translation.GetK(litIndex + 1);
-
             if (lit.Variable != coClusterVariable.variable) {
                 continue;
             }

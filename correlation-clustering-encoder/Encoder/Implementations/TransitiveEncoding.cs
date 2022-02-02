@@ -23,8 +23,8 @@ public class TransitiveEncoding : IProtoEncoder {
         coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, true);
 
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
-            ProtoLiteral s_ij = coClusterVar.Named("S", edge.I, edge.J);
-            AddCoClusterConstraints(s_ij, edge.Cost);
+            ProtoLiteral x_ij = coClusterVar[edge.I, edge.J];
+            AddCoClusterConstraints(x_ij, edge.Cost);
 
             for (int k = edge.J + 1; k < instance.DataPointCount; k++) {
                 if (k == edge.I || k == edge.J) {
@@ -38,12 +38,12 @@ public class TransitiveEncoding : IProtoEncoder {
     }
 
     private void Transitivity(int i, int j, int k) {
-        ProtoLiteral s_ij = coClusterVar.Named("S", i, j);
-        ProtoLiteral s_jk = coClusterVar.Named("S", j, k);
-        ProtoLiteral s_ik = coClusterVar.Named("S", i, k);
+        ProtoLiteral x_ij = coClusterVar[i, j];
+        ProtoLiteral x_jk = coClusterVar[j, k];
+        ProtoLiteral x_ik = coClusterVar[i, k];
 
         // Hard transitivity for distinct 3 literals
-        protoEncoding.AddHard(s_ij.Neg, s_jk.Neg, s_ik);
+        protoEncoding.AddHard(x_ij.Neg, x_jk.Neg, x_ik);
     }
 
     protected void AddCoClusterConstraints(ProtoLiteral x_ij, double cost) {
@@ -73,6 +73,6 @@ public class TransitiveEncoding : IProtoEncoder {
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(translation, instance.DataPointCount, coClusterVar, solution).GetClustering());
+        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(solution.AsProtoLiterals(Translation), coClusterVar).GetClustering());
     }
 }

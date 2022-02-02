@@ -24,6 +24,12 @@ public class Args {
     [Option('d', "directory", Required = false, HelpText = "The data directory which will be used for the WCNF files.")]
     public string Directory { get; set; }
 
+    [Option('a', "assignments", Required = false, HelpText = "Whether to save the solution variable assignments as a text file.")]
+    public bool SaveAssignments { get; set; }
+
+    [Option('o', "ordered", Required = false, HelpText = "Whether to sort the literals by their index. Can cause performance impacts when variable count is high.")]
+    public bool OrderedLiterals { get; set; }
+
     [Option('t', "timeout", Required = false, HelpText = "The MaxSAT solver timeout in seconds.")]
     public int SolverTimeLimit { get; set; }
 
@@ -54,6 +60,6 @@ public class Args {
     public string WCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.wcnf";
     public string ProtoWCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.protowcnf";
     public string OutputFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.solution";
-    public string ResultFile() => $"{GetDirectory()}/{InputFileName}.results.txt";
+    public string GeneralOutputFile(string fileExtension) => $"{GetDirectory()}/{InputFileName}.{fileExtension}";
     #endregion
 }

@@ -21,9 +21,9 @@ public class OrderEncoding : IProtoEncoder {
     }
 
     protected override void ProtoEncode() {
-        orderVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount);
-        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount);
-        indexSameVar = new ProtoVariable3D(protoEncoding, instance.DataPointCount, instance.DataPointCount);
+        orderVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false, "O");
+        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false, "S");
+        indexSameVar = new ProtoVariable3D(protoEncoding, instance.DataPointCount, instance.DataPointCount, "I");
 
         OrderVarSemantics();
         IndexSameSemantics();
@@ -72,8 +72,8 @@ public class OrderEncoding : IProtoEncoder {
                 ProtoLiteral indexSame = indexSameVar[k, edge.I, edge.J];
                 ProtoLiteral ki = orderVar[k, edge.I];
                 ProtoLiteral kj = orderVar[k, edge.J];
-                ProtoLiteral kip1 = orderVar[k, edge.I + 1];
-                ProtoLiteral kjp1 = orderVar[k, edge.J + 1];
+                ProtoLiteral kip1 = orderVar[k + 1, edge.I];
+                ProtoLiteral kjp1 = orderVar[k + 1, edge.J];
 
                 protoEncoding.AddHard(indexSame, ki.Neg, kj.Neg, kip1, kjp1);
                 protoEncoding.AddHard(indexSame.Neg, ki);
@@ -116,7 +116,7 @@ public class OrderEncoding : IProtoEncoder {
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(translation, instance.DataPointCount, coClusterVar, solution).GetClustering());
+        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(solution.AsProtoLiterals(Translation), coClusterVar).GetClustering());
         int[] clustering = new int[instance.DataPointCount];
         Console.WriteLine("Count. " + solution.Assignments.Length);
         for (int litIndex = 0; litIndex < solution.Assignments.Length; litIndex++) {
@@ -127,7 +127,7 @@ public class OrderEncoding : IProtoEncoder {
                 continue;
             }
 
-            ProtoLiteral lit = translation.GetK(litIndex + 1);
+            ProtoLiteral lit = Translation.GetK(litIndex + 1);
             Console.WriteLine(lit);
 
             // Assignments are 0 indexed

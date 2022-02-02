@@ -140,6 +140,6 @@ internal class BinaryEncoding : IProtoEncoder {
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(translation, instance.DataPointCount, coClusterVar, solution).GetClustering(), true);
+        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(solution.AsProtoLiterals(Translation), coClusterVar).GetClustering(), true);
     }
 }

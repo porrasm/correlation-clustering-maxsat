@@ -16,7 +16,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     protected IWeightFunction weights;
     protected ProtoEncoding protoEncoding;
     protected CrlClusteringInstance instance;
-    protected ProtoLiteralTranslator translation;
+    public ProtoLiteralTranslator Translation { get; private set; }
     #endregion
 
     public IProtoEncoder(IWeightFunction weights) {
@@ -42,11 +42,11 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
         Console.WriteLine("    Encoding done.");
 
         Console.WriteLine("    3 / 4 Create translation...");
-        translation = new(protoEncoding);
+        Translation = new(protoEncoding, Args.Instance.OrderedLiterals);
         Console.WriteLine("    Created translation.");
 
         Console.WriteLine("    4 / 4 Translating...");
-        SATEncoding encoding = new SATEncoding(protoEncoding, translation);
+        SATEncoding encoding = new SATEncoding(protoEncoding, Translation);
         Console.WriteLine("    Translation done.");
 
         protoEncoding = new ProtoEncoding();

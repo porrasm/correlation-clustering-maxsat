@@ -37,35 +37,33 @@ public class UnaryEncoding : IProtoEncoder {
         Init();
         ExactlyOneCluster();
 
-        for (int i = 0; i < N; i++) {
-            for (int j = i + 1; j < N; j++) {
-                double cost = instance.GetCost(i, j);
+        foreach (Edge edge in instance.Edges_I_LessThan_J()) {
 
-                if (cost == double.PositiveInfinity) {
-                    MustLink(i, j);
-                    continue;
-                }
-                if (cost == double.NegativeInfinity) {
-                    CannotLink(i, j);
-                    continue;
-                }
+            if (edge.Cost == double.PositiveInfinity) {
+                MustLink(edge.I, edge.J);
+                continue;
+            }
+            if (edge.Cost == double.NegativeInfinity) {
+                CannotLink(edge.I, edge.J);
+                continue;
+            }
 
-                if (cost > 0) {
-                    for (int k = 0; k < K; k++) {
-                        HardSimilar(k, i, j);
-                    }
-                    SoftSimilar(i, j);
-                    continue;
+            if (edge.Cost > 0) {
+                for (int k = 0; k < K; k++) {
+                    HardSimilar(k, edge.I, edge.J);
                 }
-                if (cost < 0) {
-                    for (int k = 0; k < K; k++) {
-                        HardDissimilar(k, i, j);
-                    }
-                    SoftDissimilar(i, j);
+                SoftSimilar(edge.I, edge.J);
+                continue;
+            }
+            if (edge.Cost < 0) {
+                for (int k = 0; k < K; k++) {
+                    HardDissimilar(k, edge.I, edge.J);
                 }
+                SoftDissimilar(edge.I, edge.J);
             }
         }
     }
+
 
     private void ExactlyOneCluster() {
         for (int i = 0; i < N; i++) {
@@ -140,7 +138,7 @@ public class UnaryEncoding : IProtoEncoder {
                 continue;
             }
 
-            ProtoLiteral lit = translation.GetK(litIndex + 1);
+            ProtoLiteral lit = Translation.GetK(litIndex + 1);
 
             // Assignments are 0 indexed
             if (lit.Variable != yVar.variable) {
