@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Clustering;
 
 public static class ClusterParser {
-    public static CrlClusteringInstance FromFile(string file, int variableCountLimit = 0, Transformation t = default) {
+    public static CrlClusteringInstance FromFile(string file, Transformation t = default) {
         file = file.Trim();
         Console.WriteLine($"Reading clustering instance from: {file}");
         string extension = Path.GetExtension(file);
         return extension switch {
             ".matrix" => FromMatrix(file),
-            _ => FromTextFile(file, variableCountLimit, t)
+            _ => FromTextFile(file, t)
         };
     }
 
     #region text
-    public static CrlClusteringInstance FromTextFile(string textFile, int variableCountLimit = 0, Transformation t = default) {
+    public static CrlClusteringInstance FromTextFile(string textFile, Transformation t = default) {
         string[] lines = File.ReadAllLines(textFile);
         Dictionary<string, int> dataPoints = new Dictionary<string, int>();
 
@@ -65,10 +65,6 @@ public static class ClusterParser {
 
         for (int i = 0; i < dataPointCount; i++) {
             similarityMatrix[i, i] = double.PositiveInfinity;
-        }
-
-        if (variableCountLimit > 0 && dataPointCount > variableCountLimit) {
-            UseSubsetOfDataPoints(variableCountLimit, ref similarityMatrix);
         }
 
         return new CrlClusteringInstance(similarityMatrix);

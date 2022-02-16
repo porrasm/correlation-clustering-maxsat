@@ -51,6 +51,31 @@ public class CrlClusteringInstance {
         EdgeCount = GetEdgeCount();
     }
 
+    public CrlClusteringInstance RandomNPoints(int n, int seed = 0) {
+        List<int> all = new List<int>();
+        for (int i = 0; i < DataPointCount; i++) {
+            all.Add(i);
+        }
+        Random rnd = seed == 0 ? new() : new(seed);
+
+        List<int> points = new List<int>();
+        for (int i = 0; i < n; i++) {
+            int ri = rnd.Next(all.Count);
+            int point = all[ri];
+            all.RemoveAt(ri);
+            points.Add(point);
+        }
+
+        double[,] matrix = new double[n, n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                matrix[i, j] = similarityMatrix[points[i], points[j]];
+            }
+        }
+
+        return new CrlClusteringInstance(matrix);
+    }
+
     private int GetEdgeCount() {
         int count = 0;
         foreach (Edge edge in Edges()) {

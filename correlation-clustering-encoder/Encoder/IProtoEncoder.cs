@@ -67,7 +67,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     #endregion
 
     #region static
-    private const string DEFAULT_ENCODINGS = "transitive unary binary order";
+    private const string DEFAULT_ENCODINGS = "transitive unary binary order_new";
     public static ICrlClusteringEncoder[] GetEncodings(IWeightFunction weights, params string[]? encodingTypes) {
         if (encodingTypes == null || encodingTypes.Length == 0) {
             return GetEncodings(weights, DEFAULT_ENCODINGS.Split());
@@ -85,7 +85,8 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
             "transitive" => new TransitiveEncoding(weights),
             "unary" => new UnaryEncoding(weights),
             "binary" => new BinaryEncoding(weights),
-            "order" => new OrderEncoding(weights),
+            "order_co" => new OrderEncoding_CoCluster(weights),
+            "order_new" => new OrderEncoding_New(weights),
             _ => throw new Exception("Unknown encoding: " + encodingType)
         };
     }

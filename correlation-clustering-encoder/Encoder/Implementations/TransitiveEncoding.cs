@@ -20,7 +20,7 @@ public class TransitiveEncoding : IProtoEncoder {
 
 
     protected override void ProtoEncode() {
-        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, true);
+        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, true, "SameCluster");
 
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
             ProtoLiteral x_ij = coClusterVar[edge.I, edge.J];

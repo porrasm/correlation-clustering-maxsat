@@ -36,6 +36,9 @@ public class Args {
     [Option("save", Required = false, HelpText = "Whether to save WCNF files and result files.")]
     public bool Save { get; set; }
 
+    [Option("csv", Required = false, HelpText = "Whether to save results as CSV.")]
+    public bool SaveCSV { get; set; }
+
     [Option("parallel", Required = false, HelpText = "Whether to solve the encodings in parallel.")]
     public bool Parallel { get; set; }
 
@@ -60,6 +63,7 @@ public class Args {
     public string WCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.wcnf";
     public string ProtoWCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.protowcnf";
     public string OutputFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.solution";
+    public string AssignmentsFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.assignments";
     public string GeneralOutputFile(string fileExtension) => $"{GetDirectory()}/{InputFileName}.{fileExtension}";
     #endregion
 }
