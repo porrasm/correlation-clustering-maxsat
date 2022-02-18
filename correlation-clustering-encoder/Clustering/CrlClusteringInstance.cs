@@ -12,6 +12,7 @@ public class CrlClusteringInstance {
     public int DataPointCount { get; private set; }
     public int DataPointsSquared => DataPointCount * DataPointCount;
     public int EdgeCount { get; }
+    public int UniqueEdgeCount { get; }
     private double[,] similarityMatrix;
     #endregion
 
@@ -37,6 +38,7 @@ public class CrlClusteringInstance {
         }
 
         EdgeCount = GetEdgeCount();
+        UniqueEdgeCount = GetEdgeCountSymmetric();
     }
 
     public CrlClusteringInstance(double[,] similarityMatrix) {
@@ -49,6 +51,7 @@ public class CrlClusteringInstance {
             similarityMatrix[i, i] = double.PositiveInfinity;
         }
         EdgeCount = GetEdgeCount();
+        UniqueEdgeCount = GetEdgeCountSymmetric();
     }
 
     public CrlClusteringInstance RandomNPoints(int n, int seed = 0) {
@@ -122,7 +125,7 @@ public class CrlClusteringInstance {
         sb.AppendLine("--------------------- Instance ---------------------");
         sb.AppendLine($"    Data points                         : {DataPointCount}");
         sb.AppendLine($"    Non-zero edge count                 : {EdgeCount}");
-        sb.AppendLine($"    Non-zero edge count (symmetric)     : {GetEdgeCountSymmetric()}");
+        sb.AppendLine($"    Non-zero edge count (symmetric)     : {UniqueEdgeCount}");
         return sb.ToString();
     }
 }
@@ -140,5 +143,4 @@ public struct Edge {
     public override bool Equals(object? obj) => obj is Edge edge && I == edge.I && J == edge.J;
     public override int GetHashCode() => HashCode.Combine(I, J);
     public override string? ToString() => $"({I}, {J}) {Cost}";
-
 }

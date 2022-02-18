@@ -1,0 +1,5 @@
+instance,data_points,edge_count,unique_edge_count,encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys
+"test.bmp.matrix",0,4489,2211,"binary",1,"OptimumFound",18157,79596,2211,174000,93,80,24360,23990,40
+"test.bmp.matrix",0,4489,2211,"unary",1,"OptimumFound",44386,228939,2211,174000,263,260,17950,17530,80
+"test.bmp.matrix",0,4489,2211,"transitive",1,"OptimumFound",2211,143715,2211,174000,395,390,1630,1240,40
+"test.bmp.matrix",0,4489,2211,"order_new",1,"OptimumFound",40031,287832,2211,174000,793,790,15200,14810,30

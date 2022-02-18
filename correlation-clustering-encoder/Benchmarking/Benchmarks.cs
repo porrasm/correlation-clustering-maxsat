@@ -52,15 +52,15 @@ public static class Benchmarks {
             File.WriteAllText(Args.Instance.GeneralOutputFile("results.txt"), sb.ToString());
         }
         if (Args.Instance.SaveCSV) {
-            SaveCSVResults(results);
+            SaveCSVResults(results, cluster);
         }
     }
 
-    private static void SaveCSVResults(List<BenchResult> results) {
+    private static void SaveCSVResults(List<BenchResult> results, CrlClusteringInstance cluster) {
         StringBuilder csv = new StringBuilder();
         csv.AppendLine(BenchResult.CSV_HEADER);
         foreach (BenchResult result in results) {
-            csv.AppendLine(result.ToCSVLine());
+            csv.AppendLine(result.ToCSVLine(cluster));
         }
         File.WriteAllText(Args.Instance.GeneralOutputFile("results.csv"), csv.ToString());
     }
@@ -176,7 +176,7 @@ public static class Benchmarks {
     }
 
     public class BenchResult {
-        public const string CSV_HEADER = "encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys";
+        public const string CSV_HEADER = "instance,data_points,edge_count,unique_edge_count,encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys";
 
         public ICrlClusteringEncoder Encoding { get; }
         public SATSolution? SATSolution { get; set; }
@@ -220,14 +220,14 @@ public static class Benchmarks {
             return sb.ToString();
         }
 
-        public string ToCSVLine() {
+        public string ToCSVLine(CrlClusteringInstance cluster) {
             SATSolution.Status solution = SATSolution.Status.Unknown;
             ulong cost = 0;
             if (SATSolution != null) {
                 solution = SATSolution.Solution;
                 cost = SATSolution.Cost;
             }
-            return $"{Encoding.GetEncodingType()},{(Completed ? 1 : 0)},{solution},{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys}";
+            return $"\"{Path.GetFileName(Args.Instance.InputFile)}\",{Args.Instance.DataPointCountLimit},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys}";
         }
 
         private string MsToSeconds(long ms) {
