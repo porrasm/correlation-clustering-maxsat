@@ -33,6 +33,9 @@ public class Args {
     [Option('t', "timeout", Required = false, HelpText = "The MaxSAT solver timeout in seconds.")]
     public int SolverTimeLimit { get; set; }
 
+    [Option("time-binary", Required = false, HelpText = "A binary file for 'time' command which supports options '-p' and '-o'")]
+    public string TimeBinary { get; set; }
+
     [Option("save", Required = false, HelpText = "Whether to save WCNF files and result files.")]
     public bool Save { get; set; }
 
@@ -59,6 +62,8 @@ public class Args {
     }
 
     private string InputFileName => Path.GetFileName(InputFile);
+
+    public string GetTimeBinary() => TimeBinary == null || TimeBinary.Length == 0 ? "/usr/bin/time" : TimeBinary.Trim();
 
     public string WCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.wcnf";
     public string ProtoWCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.protowcnf";

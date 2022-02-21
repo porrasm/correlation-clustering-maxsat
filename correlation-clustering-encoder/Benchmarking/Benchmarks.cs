@@ -15,6 +15,8 @@ namespace CorrelationClusteringEncoder.Benchmarking;
 
 public static class Benchmarks {
     public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoder[] codecs) {
+        SATSolver.WorkingDirectory = Args.Instance.Directory;
+
         Console.WriteLine($"Starting benchmarks on {codecs.Length} encodings...");
         List<BenchResult> results = new List<BenchResult>();
 
@@ -76,7 +78,7 @@ public static class Benchmarks {
             Console.WriteLine($"    Time limit: {Args.Instance.SolverTimeLimit}");
         }
 
-        SolverResult result = SATSolver.SolveWithTimeCommand(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, GetSolverFlag());
+        SolverResult result = SATSolver.SolveWithTimeCommand(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, GetSolverFlag(), Args.Instance.GetTimeBinary());
 
         if (!Args.Instance.Save) {
             File.Delete(Args.Instance.WCNFFile(encoding));
@@ -139,40 +141,6 @@ public static class Benchmarks {
 
         new CNFWriter<int>(Args.Instance.WCNFFile(encoding), maxsat, maxsat.LiteralCount, maxsat.GetIndexAfterTop()).ConvertToWCNF();
         Console.WriteLine($"Created WCNF file: {Args.Instance.WCNFFile(encoding)}");
-    }
-    public static string BenchProcess(Process p, long timeLimitMs, out ulong elapsedTime, out bool gracefulExit) {
-        Stopwatch watch = Stopwatch.StartNew();
-        p.Start();
-
-        if (timeLimitMs > 0) {
-            gracefulExit = p.WaitForExit(Args.Instance.SolverTimeLimit * 1000);
-            watch.Stop();
-            if (!gracefulExit) {
-                p.Kill();
-            }
-        } else {
-            p.WaitForExit();
-            watch.Stop();
-            gracefulExit = true;
-        }
-
-        elapsedTime = (ulong)watch.ElapsedMilliseconds;
-        return p.StandardOutput.ReadToEnd();
-    }
-
-    public static Process GetSolverProcess(ICrlClusteringEncoder encoding) {
-        Process solverProcess = new Process();
-        solverProcess.StartInfo.FileName = Args.Instance.MaxSATSolver;
-        solverProcess.StartInfo.Arguments = GetArguments(encoding);
-        solverProcess.StartInfo.RedirectStandardOutput = true;
-        return solverProcess;
-    }
-    private static string GetArguments(ICrlClusteringEncoder encoding) {
-        string wcnf = Args.Instance.WCNFFile(encoding);
-        if (Args.Instance.MaxSATSolverFlag == null) {
-            return wcnf;
-        }
-        return $"{wcnf} -{Args.Instance.MaxSATSolverFlag}";
     }
 
     public class BenchResult {
