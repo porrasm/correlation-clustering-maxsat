@@ -78,7 +78,7 @@ public static class Benchmarks {
             Console.WriteLine($"    Time limit: {Args.Instance.SolverTimeLimit}");
         }
 
-        SolverResult result = SATSolver.SolveWithTimeCommand(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, GetSolverFlag(), Args.Instance.GetTimeBinary());
+        SolverResult result = SATSolver.SolveWithTimeCommand(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, SolverParams.GetSolverParams(Args.Instance.MaxSATSolver, Args.Instance.ShowModel), Args.Instance.GetTimeBinary());
 
         if (!Args.Instance.Save) {
             File.Delete(Args.Instance.WCNFFile(encoding));
@@ -116,14 +116,6 @@ public static class Benchmarks {
             SoftCount = softs
         };
     }
-    private static string? GetSolverFlag() {
-        string? f = Args.Instance.MaxSATSolverFlag;
-        if (f == null || f.Length == 0) {
-            return null;
-        }
-        return $"-{f}";
-    }
-
     private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out Times encodeTimes, out ulong literalCount, out ulong hardCount, out ulong softCount) {
         Stopwatch sw = Stopwatch.StartNew();
 
@@ -144,7 +136,7 @@ public static class Benchmarks {
     }
 
     public class BenchResult {
-        public const string CSV_HEADER = "instance,data_points,edge_count,unique_edge_count,encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys";
+        public const string CSV_HEADER = "solver,instance,data_points,edge_count,unique_edge_count,encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys";
 
         public ICrlClusteringEncoder Encoding { get; }
         public SATSolution? SATSolution { get; set; }
@@ -195,7 +187,7 @@ public static class Benchmarks {
                 solution = SATSolution.Solution;
                 cost = SATSolution.Cost;
             }
-            return $"\"{Path.GetFileName(Args.Instance.InputFile)}\",{Args.Instance.DataPointCountLimit},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys}";
+            return $"\"{Args.Instance.MaxSATSolver}\",\"{Path.GetFileName(Args.Instance.InputFile)}\",{Args.Instance.DataPointCountLimit},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys}";
         }
 
         private string MsToSeconds(long ms) {

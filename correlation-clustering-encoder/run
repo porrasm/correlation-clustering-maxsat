@@ -1,1 +1,1 @@
-﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -s /mnt/p/Stuff/School/gradu/projects/dependencies/maxhs/bin/maxhs --directory local --solver-flag printSoln $@
+﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -s /mnt/p/Stuff/School/gradu/projects/dependencies/pacose/bin/Pacose --directory local $@

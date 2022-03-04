@@ -11,12 +11,11 @@ public class Args {
     #region fields
     public static Args Instance { get; set; } = new();
 
-
     [Option('s', "solver", Required = true, HelpText = "The WCNF compatible MaxSAT solver binary to use.")]
     public string MaxSATSolver { get; set; }
 
-    [Option("solver-flag", Required = false, HelpText = "Additional flag to pass on to the solver in order to get correct output.")]
-    public string? MaxSATSolverFlag { get; set; }
+    [Option('m', "model", Required = false, HelpText = "Whether to ask the solver to print the model.")]
+    public bool ShowModel { get; set; }
 
     [Option('i', "input", Required = true, HelpText = "The input problem instance to use.")]
     public string InputFile { get; set; }
