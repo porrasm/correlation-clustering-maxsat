@@ -1,1 +1,1 @@
-﻿clear; /mnt/p/Stuff/School/gradu/projects/dependencies/dotnet/dotnet run -i /mnt/p/Stuff/School/gradu/projects/_problems/debug-bmp/test.bmp.matrix -s /mnt/p/Stuff/School/gradu/projects/dependencies/maxhs/bin/maxhs --save 1 -m 1 --directory local $@
+﻿clear; /mnt/p/Stuff/School/gradu/correlation-clustering/correlation-clustering-encoder/bin/Debug/net6.0/linux-x64/publish/correlation-clustering-encoder -i /mnt/p/Stuff/School/gradu/correlation-clustering/_problems/debug-bmp/test.bmp.matrix -s /mnt/p/Stuff/School/gradu/_dependencies/solvers/maxhs --save 1 -m --directory local $@

@@ -1,4 +1,5 @@
 ﻿using CommandLine;
+using CorrelationClusteringEncoder.Benchmarking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -41,6 +42,9 @@ public class Args {
     [Option("csv", Required = false, HelpText = "Whether to save results as CSV.")]
     public bool SaveCSV { get; set; }
 
+    [Option("no-retry", Required = false, HelpText = "If set to true, the benchmark is not run if CSV results exist already.")]
+    public bool NoRetry { get; set; }
+
     [Option("parallel", Required = false, HelpText = "Whether to solve the encodings in parallel.")]
     public bool Parallel { get; set; }
 
@@ -52,6 +56,8 @@ public class Args {
 
     [Option("data-points", Required = false, HelpText = "Maximum number of data points to use, leave empty from unlimited.")]
     public int DataPointCountLimit { get; set; }
+    [Option("data-point-increment", Required = false, HelpText = "Increment amount of data points in benchmarks. Used to ignore benchmarks if there are not enough data points in the instance.")]
+    public int DataPointIncrement { get; set; }
 
     public string GetDirectory() {
         if (Directory != null && Directory.Length > 0) {
@@ -69,5 +75,15 @@ public class Args {
     public string OutputFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.solution";
     public string AssignmentsFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.assignments";
     public string GeneralOutputFile(string fileExtension) => $"{GetDirectory()}/{InputFileName}.{fileExtension}";
+
+    public IOutputParser GetParser() {
+        if (MaxSATSolver.Contains("maxhs")) {
+            return new MaxHSParser();
+        }
+        if (MaxSATSolver.Contains("rc2")) {
+            return new RC2Parser();
+        }
+        return new DefaultParser();
+    }
     #endregion
 }

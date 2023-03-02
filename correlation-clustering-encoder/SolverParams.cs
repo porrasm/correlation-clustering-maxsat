@@ -19,6 +19,9 @@ public static class SolverParams {
         if (solver.Contains("uwrmaxsat")) {
             return showModel ? UWRMaxSatVerbose : UWRMaxSat;
         }
+        if (solver.Contains("rc2")) {
+            return showModel ? RC2Verbose : RC2;
+        }
 
         Console.WriteLine("Warning: preset parameters for solver not found: " + solver);
         return "";
@@ -30,6 +33,9 @@ public static class SolverParams {
     public static string Pacose = "-p 0";
     public static string PacoseVerbose = "";
 
-    public static string UWRMaxSat = "-no-model";
-    public static string UWRMaxSatVerbose = "-bin-model";
+    public static string UWRMaxSat = "-no-model -v3";
+    public static string UWRMaxSatVerbose = "-bin-model -v3";
+
+    public static string RC2 = "-v";
+    public static string RC2Verbose = "-v -v --vnew";
 }

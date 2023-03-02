@@ -21,8 +21,8 @@ public class OrderEncoding_New : IOrderEncoding {
 
     protected override void RunEncode() {
         orderVar.Name = "O";
-        aVar = new ProtoVariable3D(protoEncoding, instance.DataPointCount, instance.DataPointCount, "A");
-        dVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false, "D");
+        aVar = new ProtoVariable3D(protoEncoding, instance.DataPointCount, instance.DataPointCount);
+        dVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false);
 
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
 
@@ -149,7 +149,7 @@ public class OrderEncoding_New : IOrderEncoding {
  * 
  * S[i, j] <=>
  * 
- * indexSame[k, i, j] <-> (order[k, i] & order[k, j] & -order[k, i + 1] & -order[k, j + 1])
+ * indexSame[k, i, j] <-> (order[k, i] & order[k, j] & -order[k + 1, i] & -order[k + 1, j])
  * 
  * 
  * idead: consecutive MaxSAT calls???

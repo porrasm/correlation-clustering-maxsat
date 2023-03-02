@@ -20,4 +20,8 @@ public static class Matht {
     public static int Log2Ceil(int value) {
         return (int)Math.Ceiling(Math.Log2(value));
     }
+
+    public static int PowerOfTwo(int value) {
+        return 1 << value;
+    }
 }

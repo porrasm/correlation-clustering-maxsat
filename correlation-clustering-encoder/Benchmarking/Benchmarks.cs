@@ -17,6 +17,10 @@ public static class Benchmarks {
     public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoder[] codecs) {
         SATSolver.WorkingDirectory = Args.Instance.Directory;
 
+        if (BenchmarkIsRedundant()) {
+            return;
+        }
+
         Console.WriteLine($"Starting benchmarks on {codecs.Length} encodings...");
         List<BenchResult> results = new List<BenchResult>();
 
@@ -66,6 +70,9 @@ public static class Benchmarks {
         }
         File.WriteAllText(Args.Instance.GeneralOutputFile("results.csv"), csv.ToString());
     }
+    private static bool BenchmarkIsRedundant() {
+        return Args.Instance.SaveCSV && Args.Instance.NoRetry && File.Exists(Args.Instance.GeneralOutputFile("results.csv"));
+    }
 
     public static BenchResult Benchmark(CrlClusteringInstance cluster, ICrlClusteringEncoder encoding) {
         Console.WriteLine($"\nEncoding '{encoding.GetEncodingType()}' with {cluster.DataPointCount} data points and {cluster.EdgeCount} edges");
@@ -79,6 +86,15 @@ public static class Benchmarks {
         }
 
         SolverResult result = SATSolver.SolveWithTimeCommand(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, SolverParams.GetSolverParams(Args.Instance.MaxSATSolver, Args.Instance.ShowModel), Args.Instance.GetTimeBinary());
+
+        Console.WriteLine("Solver output:");
+        Console.WriteLine(result.ProcessOutput);
+        Console.WriteLine();
+
+        string[] myLines = result.ProcessOutput.Split('\n').Where(l => l.StartsWith("c eetu")).ToArray();
+        Console.WriteLine("Custom output:");
+        Console.WriteLine(string.Join('\n', myLines));
+        Console.WriteLine();
 
         if (!Args.Instance.Save) {
             File.Delete(Args.Instance.WCNFFile(encoding));
@@ -113,7 +129,8 @@ public static class Benchmarks {
             SolveTimes = result.Times,
             LiteralCount = literals,
             HardCount = hards,
-            SoftCount = softs
+            SoftCount = softs,
+            ExtraData = Args.Instance.GetParser().Parse(result.ProcessOutput)
         };
     }
     private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out Times encodeTimes, out ulong literalCount, out ulong hardCount, out ulong softCount) {
@@ -136,7 +153,7 @@ public static class Benchmarks {
     }
 
     public class BenchResult {
-        public const string CSV_HEADER = "solver,instance,data_points,edge_count,unique_edge_count,encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys";
+        public const string CSV_HEADER = "solver,instance,data_points,edge_count,unique_edge_count,encoding_type,completed,solver_status,literals,hard_clauses,soft_clauses,cost,encoding_real,encoding_user,solve_real,solve_user,solve_sys,extra_data";
 
         public ICrlClusteringEncoder Encoding { get; }
         public SATSolution? SATSolution { get; set; }
@@ -146,6 +163,7 @@ public static class Benchmarks {
         public ulong LiteralCount { get; set; }
         public ulong HardCount { get; set; }
         public ulong SoftCount { get; set; }
+        public string ExtraData { get; set; }
 
         public BenchResult(ICrlClusteringEncoder encoding) {
             Encoding = encoding;
@@ -187,7 +205,7 @@ public static class Benchmarks {
                 solution = SATSolution.Solution;
                 cost = SATSolution.Cost;
             }
-            return $"\"{Args.Instance.MaxSATSolver}\",\"{Path.GetFileName(Args.Instance.InputFile)}\",{Args.Instance.DataPointCountLimit},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys}";
+            return $"\"{Args.Instance.MaxSATSolver}\",\"{Path.GetFileName(Args.Instance.InputFile)}\",{cluster.DataPointCount},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys},\"{ExtraData}\"";
         }
 
         private string MsToSeconds(long ms) {

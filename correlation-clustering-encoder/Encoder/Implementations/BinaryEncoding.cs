@@ -9,21 +9,23 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
-internal class BinaryEncoding : IProtoEncoder {
+internal abstract class BinaryEncodingBase : IProtoEncoder {
     #region fields
-    private int a;
+    protected int bits;
 
-    private ProtoVariable2D bitVar, coClusterVar;
-    private ProtoVariable3D eqVar;
+    protected ProtoVariable2D bitVar, coClusterVar;
+    protected ProtoVariable3D eqVar;
     #endregion
 
-    public BinaryEncoding(IWeightFunction weights) : base(weights) { }
+    public BinaryEncodingBase(IWeightFunction weights) : base(weights) { }
 
-    public override string GetEncodingType() => "binary";
+    //public override string GetEncodingType() => "binary";
+
+    protected abstract void AdditionalClauses();
 
     private void Init() {
         int n = instance.DataPointCount;
-        a = Matht.Log2Ceil(n);
+        bits = Matht.Log2Ceil(n);
 
         bitVar = new ProtoVariable2D(protoEncoding, n);
         coClusterVar = new ProtoVariable2D(protoEncoding, n);
@@ -50,6 +52,8 @@ internal class BinaryEncoding : IProtoEncoder {
 
             AddCoClusterConstraints(coClusterVar[edge.I, edge.J], edge.Cost);
         }
+
+        AdditionalClauses();
     }
 
     protected void AddCoClusterConstraints(ProtoLiteral x_ij, double cost) {
@@ -76,7 +80,7 @@ internal class BinaryEncoding : IProtoEncoder {
                 continue;
             }
             if (edge.I < edge.J) {
-                for (int k = 0; k < a; k++) {
+                for (int k = 0; k < bits; k++) {
                     Equality(k, edge.I, edge.J);
                 }
             }
@@ -84,17 +88,17 @@ internal class BinaryEncoding : IProtoEncoder {
     }
 
     private void SameCluster(int i, int j) {
-        ProtoLiteral[] clause = new ProtoLiteral[a + 1];
+        ProtoLiteral[] clause = new ProtoLiteral[bits + 1];
         ProtoLiteral s_ij = coClusterVar[i, j];
 
-        for (int k = 0; k < a; k++) {
+        for (int k = 0; k < bits; k++) {
             ProtoLiteral eq_kij = eqVar[k, i, j];
 
             protoEncoding.AddHard(s_ij.Neg, eq_kij);
             clause[k] = eq_kij.Neg;
         }
 
-        clause[a] = s_ij;
+        clause[bits] = s_ij;
         protoEncoding.AddHard(clause);
     }
 
@@ -121,7 +125,7 @@ internal class BinaryEncoding : IProtoEncoder {
     }
 
     private void MustLink(int i, int j) {
-        for (int k = 0; k < a; k++) {
+        for (int k = 0; k < bits; k++) {
             var b_ki = bitVar[k, i];
             var b_kj = bitVar[k, j];
 
@@ -130,8 +134,8 @@ internal class BinaryEncoding : IProtoEncoder {
         }
     }
     private void CannotLink(int i, int j) {
-        ProtoLiteral[] literals = new ProtoLiteral[a];
-        for (int k = 0; k < a; k++) {
+        ProtoLiteral[] literals = new ProtoLiteral[bits];
+        for (int k = 0; k < bits; k++) {
             // Equality(k, i, j);
             literals[k] = eqVar[k, i, j].Neg;
         }
@@ -141,5 +145,69 @@ internal class BinaryEncoding : IProtoEncoder {
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
         return new CrlClusteringSolution(instance, new CoClusterSolutionParser(solution.AsProtoLiterals(Translation), coClusterVar).GetClustering(), true);
+    }
+
+    protected ProtoLiteral GetBitLiteral(int bitIndex, int variable, int value) {
+        var literal = bitVar[bitIndex, variable];
+
+        // check if the bitIndex of value is 1
+        if ((value & (1 << bitIndex)) == 0) {
+            literal = literal.Neg;
+        }
+        return literal;
+    }
+}
+
+internal class BinaryEncoding : BinaryEncodingBase {
+    public BinaryEncoding(IWeightFunction weights) : base(weights) { }
+
+    public override string GetEncodingType() => "binary";
+
+    protected override void AdditionalClauses() {
+
+    }
+}
+
+internal class BinaryForbidHighAssignmentsEncoding : BinaryEncodingBase {
+    public BinaryForbidHighAssignmentsEncoding(IWeightFunction weights) : base(weights) { }
+
+    public override string GetEncodingType() => "binary_disallow";
+
+    protected override void AdditionalClauses() {
+        ProtoLiteral[] clause = new ProtoLiteral[bits];
+
+        int max = Matht.PowerOfTwo(bits);
+
+        // variable
+        for (int i = 0; i < instance.DataPointCount; i++) {
+            // forbidden value
+            for (int v = instance.DataPointCount; v < max; v++) {
+                for (int bit = 0; bit < bits; bit++) {
+                    clause[bit] = GetBitLiteral(bit, i, v).Neg;
+                }
+                protoEncoding.AddHard(clause);
+            }
+        }
+    }
+}
+
+internal class BinaryForbidHighAssignmentsSmartEncoding : BinaryEncodingBase {
+    public BinaryForbidHighAssignmentsSmartEncoding(IWeightFunction weights) : base(weights) { }
+
+    public override string GetEncodingType() => "binary_disallow_smart";
+
+    protected override void AdditionalClauses() {
+        //protoEncoding.AddHards(Encodings.DisallowBitOverflowValues(bitVar, instance.DataPointCount, bits));
+
+        int maxBitAssignment = instance.DataPointCount - 1;
+        ProtoLiteral[] literals = new ProtoLiteral[bits];
+
+        for (int i = 0; i < instance.DataPointCount; i++) {
+            for (int b = 0; b < bits; b++) {
+                literals[b] = bitVar[b, i];
+            }
+
+            protoEncoding.AddHards(Encodings.DisallowBitAssigmentsHigherThan(maxBitAssignment, literals));
+        }
     }
 }

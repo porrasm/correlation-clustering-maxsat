@@ -49,4 +49,73 @@ public static class Encodings {
         atMost.Add(AtLeastOne(literals));
         return atMost;
     }
+    /*
+     * dataPoints = 10101010
+     * bits = 8
+     * 
+     * */
+    public static List<ProtoLiteral[]> DisallowBitOverflowValues(ProtoVariable2D bitVar, int dataPoints, int bits) {
+        int max = Matht.PowerOfTwo(bits);
+        if (max == dataPoints) {
+            return new List<ProtoLiteral[]>();
+        }
+
+        int maxAllowedAssignment = dataPoints - 1;
+
+        Console.WriteLine("dataPoints: " + dataPoints, 2);
+        Console.WriteLine("bits: " + bits);
+        Console.WriteLine("maxAllowedAssignment: " + Convert.ToString(maxAllowedAssignment, 2));
+
+
+        List<ProtoLiteral[]> clauses = new();
+        List<int> bitsThatAreOne = new List<int>();
+
+        for (int bitIndex = bits; bitIndex >= 0; bitIndex--) {
+            bool isOne = (maxAllowedAssignment & (1 << bitIndex)) != 0;
+            if (isOne) {
+                bitsThatAreOne.Add(bitIndex);
+                continue;
+            }
+
+
+            // variable
+            for (int v = 0; v < dataPoints; v++) {
+                ProtoLiteral[] clause = new ProtoLiteral[bitsThatAreOne.Count + 1];
+
+                for (int b = 0; b < bitsThatAreOne.Count; b++) {
+                    clause[b] = bitVar[bitsThatAreOne[b], v].Neg;
+                }
+
+                clause[bitsThatAreOne.Count] = bitVar[bitIndex, v].Neg;
+
+                clauses.Add(clause);
+            }
+        }
+
+        return clauses;
+    }
+
+    public static List<ProtoLiteral[]> DisallowBitAssigmentsHigherThan(int maxBitAssignment, ProtoLiteral[] bitAssignments) {
+        List<ProtoLiteral[]> clauses = new();
+        List<int> bitsThatAreOne = new List<int>();
+
+        for (int bitIndex = bitAssignments.Length - 1; bitIndex >= 0; bitIndex--) {
+            bool isOne = (maxBitAssignment & (1 << bitIndex)) != 0;
+            if (isOne) {
+                bitsThatAreOne.Add(bitIndex);
+                continue;
+            }
+
+            ProtoLiteral[] clause = new ProtoLiteral[bitsThatAreOne.Count + 1];
+
+            for (int b = 0; b < bitsThatAreOne.Count; b++) {
+                clause[b] = bitAssignments[bitsThatAreOne[b]].Neg;
+            }
+            clause[bitsThatAreOne.Count] = bitAssignments[bitIndex].Neg;
+
+            clauses.Add(clause);
+        }
+
+        return clauses;
+    }
 }

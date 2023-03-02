@@ -12,6 +12,19 @@ Parser.Default.ParseArguments<Args>(args).WithParsed(parsed => {
     CrlClusteringInstance problem = ClusterParser.FromFile(parsed.InputFile, new(true, 0, 1, -0.5, 0.5));
 
     if (Args.Instance.DataPointCountLimit > 0) {
+        if  (Args.Instance.DataPointIncrement > 0) {
+            int maxPoints = problem.DataPointCount;
+
+            // Reached instance size
+            if (Args.Instance.DataPointCountLimit >= maxPoints) {
+                int diff = Args.Instance.DataPointCountLimit - maxPoints;
+                if (diff >= Args.Instance.DataPointIncrement) {
+                    Console.WriteLine("Benchmark is redundant. Exiting application.");
+                    return;
+                }
+            } 
+        }
+
         problem = problem.RandomNPoints(Args.Instance.DataPointCountLimit, 123456789);
     }
 

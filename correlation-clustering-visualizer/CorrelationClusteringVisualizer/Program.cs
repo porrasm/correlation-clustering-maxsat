@@ -14,7 +14,7 @@ public static class Program {
     static void Main(string[] args) {
         string inputProblemImage = args[0];
         string directory = Directory.GetParent(inputProblemImage).FullName;
-        string cnfDirectory = "P:\\Stuff\\School\\gradu\\projects\\correlation-clustering-encoder\\local";
+        string cnfDirectory = "P:\\Stuff\\School\\gradu\\correlation-clustering\\correlation-clustering-encoder\\local";
 
         double[,] matrix = FromBitmap(inputProblemImage);
         byte[] bytes = Serializer.Serialize(matrix);

@@ -55,6 +55,11 @@ public class CrlClusteringInstance {
     }
 
     public CrlClusteringInstance RandomNPoints(int n, int seed = 0) {
+        Console.WriteLine("Random points: " + n);
+        if (n >= DataPointCount) {
+            return new CrlClusteringInstance(similarityMatrix);
+        }
+
         List<int> all = new List<int>();
         for (int i = 0; i < DataPointCount; i++) {
             all.Add(i);

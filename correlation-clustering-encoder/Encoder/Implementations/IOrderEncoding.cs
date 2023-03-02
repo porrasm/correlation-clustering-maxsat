@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public abstract class IOrderEncoding : IProtoEncoder {
-    protected ProtoVariable2D orderVar;
+    protected ProtoVariable2D orderVar { get; set;}
 
     protected IOrderEncoding(IWeightFunction weights) : base(weights) {
     }
