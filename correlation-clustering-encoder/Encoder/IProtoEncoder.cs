@@ -68,7 +68,7 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
 
     #region static
     //private const string DEFAULT_ENCODINGS = "transitive unary binary binary_disallow order_new order_aeq";
-    private const string DEFAULT_ENCODINGS = "binary binary_disallow binary_disallow_smart";
+    private const string DEFAULT_ENCODINGS = "transitive unary binary binary_disallow binary_disallow_smart order_aeq order_new";
     public static ICrlClusteringEncoder[] GetEncodings(IWeightFunction weights, params string[]? encodingTypes) {
         if (encodingTypes == null || encodingTypes.Length == 0) {
             return GetEncodings(weights, DEFAULT_ENCODINGS.Split());

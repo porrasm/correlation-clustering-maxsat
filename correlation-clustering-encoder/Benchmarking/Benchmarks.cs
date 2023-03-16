@@ -40,8 +40,13 @@ public static class Benchmarks {
             }
         }
 
+        results = results.OrderBy(r => r.SolveTimes.Real).ToList();
+
         StringBuilder sb = new StringBuilder();
         sb.AppendLine(cluster.ToString());
+        AppendShortSummary(sb, results);
+
+        // orderby real time
 
         foreach (BenchResult result in results) {
             sb.AppendLine(result.ToString());
@@ -54,11 +59,57 @@ public static class Benchmarks {
 
         Console.WriteLine("\n");
         Console.WriteLine(sb.ToString());
+
         if (Args.Instance.Save) {
             File.WriteAllText(Args.Instance.GeneralOutputFile("results.txt"), sb.ToString());
         }
         if (Args.Instance.SaveCSV) {
             SaveCSVResults(results, cluster);
+        }
+
+        CheckForInvalidSolutions(results);
+    }
+
+    private static void CheckForInvalidSolutions(List<BenchResult> results) {
+        // All non null solutions should have identical costs
+        List<BenchResult> nonNullResults = results.Where(r => r.SATSolution != null).ToList();
+        
+        bool solutionCostsDiffer = false;
+        if (nonNullResults.Count > 0) {
+            ulong cost = nonNullResults[0].SATSolution.Cost;
+            for (int i = 1; i < nonNullResults.Count; i++) {
+                if (nonNullResults[i].SATSolution.Cost != cost) {
+                    solutionCostsDiffer = true;
+                }
+            }
+        }
+
+        if (!solutionCostsDiffer) {
+            return;
+        }
+        Console.WriteLine("CRITICAL ERROR -----------------------------------------");
+
+        // Print solutions found
+
+        // Null solutions
+        foreach (BenchResult result in results) {
+            if (result.SATSolution == null) {
+                Console.WriteLine($"Encoding '{result.Encoding.GetEncodingType()}' did not find a solution");
+            }
+        }
+
+        // Non null solutions
+        foreach (BenchResult result in nonNullResults) {
+            Console.WriteLine($"Encoding '{result.Encoding.GetEncodingType()}' found a solution with cost {result.SATSolution.Cost}");
+        }
+
+        throw new Exception("Solution costs differ between encodings! This means at least one encoding is incorrect.");
+    }
+
+    private static void AppendShortSummary(StringBuilder sb, List<BenchResult> results) {
+        sb.AppendLine("------------------- Short summary ------------------");
+        foreach (BenchResult result in results) {
+            sb.AppendLine(result.Encoding.GetEncodingType() + " : " + result.SolveTimes.Real + "ms");
         }
     }
 
