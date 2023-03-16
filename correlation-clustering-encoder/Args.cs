@@ -3,6 +3,7 @@ using CorrelationClusteringEncoder.Benchmarking;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,6 +59,9 @@ public class Args {
     public int DataPointCountLimit { get; set; }
     [Option("data-point-increment", Required = false, HelpText = "Increment amount of data points in benchmarks. Used to ignore benchmarks if there are not enough data points in the instance.")]
     public int DataPointIncrement { get; set; }
+    
+    [Option("timestamp-csv", Required = false, HelpText = "Set to true to timestamp CSV files.")]
+    public bool TimestampCSV { get; set; }
 
     public string GetDirectory() {
         if (Directory != null && Directory.Length > 0) {
@@ -74,7 +78,13 @@ public class Args {
     public string ProtoWCNFFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.protowcnf";
     public string OutputFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.solution";
     public string AssignmentsFile(ICrlClusteringEncoder enc) => $"{GetDirectory()}/{InputFileName}.{enc.GetEncodingType()}.assignments";
-    public string GeneralOutputFile(string fileExtension) => $"{GetDirectory()}/{InputFileName}.{fileExtension}";
+    public string GeneralOutputFile(string fileExtension) => $"{GetDirectory()}/{InputFileName}{(TimestampCSV ? $"-{CurrentMilliseconds}" : "")}.{fileExtension}";
+
+    public static long CurrentMilliseconds {
+        get {
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        }
+    }
 
     public IOutputParser GetParser() {
         if (MaxSATSolver.Contains("maxhs")) {

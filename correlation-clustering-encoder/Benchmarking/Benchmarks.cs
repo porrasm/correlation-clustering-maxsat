@@ -68,7 +68,8 @@ public static class Benchmarks {
         foreach (BenchResult result in results) {
             csv.AppendLine(result.ToCSVLine(cluster));
         }
-        File.WriteAllText(Args.Instance.GeneralOutputFile("results.csv"), csv.ToString());
+        string file = Args.Instance.GeneralOutputFile("results.csv");
+        File.WriteAllText(file, csv.ToString());
     }
     private static bool BenchmarkIsRedundant() {
         return Args.Instance.SaveCSV && Args.Instance.NoRetry && File.Exists(Args.Instance.GeneralOutputFile("results.csv"));
