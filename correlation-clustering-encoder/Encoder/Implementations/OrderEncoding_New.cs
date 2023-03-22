@@ -20,6 +20,7 @@ public class OrderEncoding_New : IOrderEncoding {
     public OrderEncoding_New(IWeightFunction weights) : base(weights) { }
 
     protected override void RunEncode() {
+        throw new Exception("Indexing problems");
         orderVar.Name = "O";
         aVar = new ProtoVariable3D(protoEncoding, instance.DataPointCount, instance.DataPointCount);
         dVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false);

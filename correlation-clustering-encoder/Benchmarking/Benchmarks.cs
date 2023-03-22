@@ -54,6 +54,8 @@ public static class Benchmarks {
             if (result.Completed && Args.Instance.Save) {
                 CrlClusteringSolution sol = result.Encoding.GetSolution(cluster, result.SATSolution);
                 sol.WriteClusteringToFile(Args.Instance.OutputFile(result.Encoding));
+
+                Console.WriteLine("Sol " + result.Encoding + ": " + sol.ToString());
             }
         }
 

@@ -11,7 +11,7 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public class OrderEncodingAeq : IOrderEncoding {
     #region fields
-    private ProtoVariable2D dVar;
+    private ProtoVariable2D SVar;
 
     public override string GetEncodingType() => "order_aeq";
     #endregion
@@ -20,16 +20,16 @@ public class OrderEncodingAeq : IOrderEncoding {
 
     protected override void RunEncode() {
         orderVar.Name = "O";
-        dVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false, "d");
+        SVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, false, "d");
 
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
             if (edge.Cost > 0) {
-                for (int k = 0; k < instance.DataPointCount; k++) {
+                for (int k = 0; k < instance.DataPointCount - 1; k++) {
                     HardSimilar(k, edge.I, edge.J);
                 }
             }
             if (edge.Cost < 0) {
-                for (int k = 0; k < instance.DataPointCount; k++) {
+                for (int k = 0; k < instance.DataPointCount - 1; k++) {
                     HardDissimilar(k, edge.I, edge.J);
                 }
             }
@@ -58,7 +58,7 @@ public class OrderEncodingAeq : IOrderEncoding {
     // CHANGE
     private void HardSimilar(int k, int i, int j) {
         protoEncoding.CommentHard($"Hard similar ({k}, {i}, {j})");
-        ProtoLiteral b_ij = dVar[i, j];
+        ProtoLiteral b_ij = SVar[i, j];
         ProtoLiteral y_ki = orderVar[k, i];
         ProtoLiteral y_kj = orderVar[k, j];
 
@@ -69,7 +69,7 @@ public class OrderEncodingAeq : IOrderEncoding {
 
     private void HardDissimilar(int k, int i, int j) {
         protoEncoding.CommentHard($"Hard dissimilar ({k}, {i}, {j})");
-        ProtoLiteral d_ij = dVar[i, j];
+        ProtoLiteral d_ij = SVar[i, j];
         ProtoLiteral y_ki = orderVar[k, i];
         ProtoLiteral y_kj = orderVar[k, j];
         ProtoLiteral y_kp1i = orderVar[k + 1, i];
@@ -79,24 +79,24 @@ public class OrderEncodingAeq : IOrderEncoding {
     }
 
     private void MustLink(int i, int j) {
-        ProtoLiteral d_ij = dVar[i, j];
+        ProtoLiteral d_ij = SVar[i, j];
         protoEncoding.AddHard(d_ij);
     }
 
     private void CannotLink(int i, int j) {
-        ProtoLiteral d_ij = dVar[i, j];
+        ProtoLiteral d_ij = SVar[i, j];
         protoEncoding.AddHard(d_ij.Neg);
     }
 
     private void SoftSimilar(int i, int j) {
         protoEncoding.CommentSoft($"Soft similar ({i}, {j})");
-        ProtoLiteral d_ij = dVar[i, j];
+        ProtoLiteral d_ij = SVar[i, j];
         protoEncoding.AddSoft(weights.GetWeight(instance.GetCost(i, j)), d_ij);
     }
 
     private void SoftDissimilar(int i, int j) {
         protoEncoding.CommentSoft($"Soft dissimilar ({i}, {j})");
-        ProtoLiteral d_ij = dVar[i, j];
+        ProtoLiteral d_ij = SVar[i, j];
         protoEncoding.AddSoft(weights.GetWeight(-instance.GetCost(i, j)), d_ij.Neg);
     }
 }

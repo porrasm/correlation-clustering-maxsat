@@ -44,6 +44,20 @@ public static class Encodings {
 
         return clauses;
     }
+    public static List<ProtoLiteral[]> AtMostOneSequential(ProtoLiteral[] x, IProtoVariableSet s) {
+        List<ProtoLiteral[]> clauses = new();
+
+        clauses.Add(new ProtoLiteral[] { x[0].Neg, s[0] });
+        clauses.Add(new ProtoLiteral[] { x[x.Length - 1].Neg, s[x.Length - 2].Neg });
+
+        for (int i = 1; i < x.Length - 1; i++) {
+            clauses.Add(new ProtoLiteral[] { x[i].Neg, s[i] });
+            clauses.Add(new ProtoLiteral[] { s[i - 1].Neg, s[i] });
+            clauses.Add(new ProtoLiteral[] { x[i].Neg, s[i - 1].Neg });
+        }
+
+        return clauses;
+    }
     public static List<ProtoLiteral[]> ExactlyOneSequential(ProtoLiteral[] literals, ProtoVariable aux) {
         var atMost = AtMostOneSequential(literals, aux);
         atMost.Add(AtLeastOne(literals));

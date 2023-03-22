@@ -73,6 +73,6 @@ public class TransitiveEncoding : IProtoEncoder {
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(solution.AsProtoLiterals(Translation), coClusterVar).GetClustering());
+        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(instance, solution.AsProtoLiterals(Translation), coClusterVar).GetClustering());
     }
 }

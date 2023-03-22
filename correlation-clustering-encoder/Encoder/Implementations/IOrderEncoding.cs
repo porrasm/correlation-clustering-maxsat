@@ -24,15 +24,9 @@ public abstract class IOrderEncoding : IProtoEncoder {
     private void OrderVarSemantics() {
         protoEncoding.CommentHard("Order semantics");
         for (int i = 0; i < instance.DataPointCount; i++) {
-            // Cluster >= 0
-            protoEncoding.AddHard(orderVar[0, i]);
-
-            // Cluster < point count
-            protoEncoding.AddHard(orderVar[instance.DataPointCount, i].Neg);
-
-            for (int k = 0; k < instance.DataPointCount; k++) {
+            for (int k = 1; k < instance.DataPointCount - 1; k++) {
                 // Cluster >= k+1 -> Cluster >= k
-                protoEncoding.AddHard(orderVar[k + 1, i].Neg, orderVar[k, i]);
+                protoEncoding.AddHard(orderVar[k, i].Neg, orderVar[k - 1, i]);
             }
         }
     }

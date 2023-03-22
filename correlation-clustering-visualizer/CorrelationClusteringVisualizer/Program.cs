@@ -29,9 +29,11 @@ public static class Program {
 
         foreach (string file in Directory.GetFiles(cnfDirectory)) {
             if (Path.GetFileName(file).EndsWith(".solution")) {
+                Console.WriteLine("Found solution: " + file);
                 Visualize(inputProblemImage, file, directory);
             }
         }
+
     }
 
     private static void DeletePreviousSolutions(string dir) {
@@ -151,6 +153,7 @@ public static class Program {
         }
 
         string path = $"{outputDir}/{Path.GetFileName(solutionFile)}.bmp";
+        Console.WriteLine("Save solution: " + path);
         img.Save(path);
     }
 }

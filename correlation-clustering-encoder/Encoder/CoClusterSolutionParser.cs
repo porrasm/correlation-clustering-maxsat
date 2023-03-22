@@ -12,13 +12,18 @@ namespace CorrelationClusteringEncoder.Encoder;
 
 public class CoClusterSolutionParser {
     #region fields
+    private CrlClusteringInstance instance;
     private int pointCount;
 
     private List<int>[] graph;
     private bool[] visited;
+
+    private List<HashSet<int>> clusters = new();
     #endregion
 
-    public CoClusterSolutionParser(ProtoLiteral[] assignments, ProtoVariable2D coClusterVariable) {
+    public CoClusterSolutionParser(CrlClusteringInstance instance, ProtoLiteral[] assignments, ProtoVariable2D coClusterVariable) {
+        this.instance = instance;
+        Console.WriteLine("Assignment length: " + assignments.Length);
         this.pointCount = assignments.Length;
 
         graph = BuildClusterGraph(assignments, coClusterVariable);
@@ -26,6 +31,38 @@ public class CoClusterSolutionParser {
     }
 
     private List<int>[] BuildClusterGraph(ProtoLiteral[] assignments, ProtoVariable2D coClusterVariable) {
+        clusters = new List<HashSet<int>>();
+
+        foreach (ProtoLiteral lit in assignments) {
+            if (lit.IsNegation) {
+                continue;
+            }
+            if (lit.Variable != coClusterVariable.variable) {
+                continue;
+            }
+            coClusterVariable.GetParameters(lit.Literal, out int i, out int j);
+            if (i == j) {
+                continue;
+            }
+
+            bool clusterWasFound = false;
+            foreach (HashSet<int> cluster in clusters) {
+                if (cluster.Contains(i) || cluster.Contains(j)) {
+                    cluster.Add(i);
+                    cluster.Add(j);
+                    clusterWasFound = true;
+                    break;
+                }
+            }
+
+            if (!clusterWasFound) {
+                clusters.Add(new HashSet<int>() { i, j });
+            }
+        }
+
+
+
+
         List<int>[] graph = new List<int>[pointCount];
         for (int i = 0; i < pointCount; i++) {
             graph[i] = new();
@@ -58,18 +95,36 @@ public class CoClusterSolutionParser {
     }
 
     public int[] GetClustering() {
-        List<List<int>> clusters = new List<List<int>>();
+        int[] clustering = new int[instance.DataPointCount];
 
-        for (int i = 0; i < graph.Length; i++) {
-            List<int> cluster = new List<int>();
-            DFSGConnectedGraph(i, cluster);
-
-            if (cluster.Count > 0) {
-                clusters.Add(cluster);
+        int clusterIndex = 0;
+        foreach (var cluster in clusters) {
+            foreach (int point in cluster) {
+                clustering[point] = clusterIndex;
             }
+            clusterIndex++;
         }
+        return clustering;
 
-        return BuildClustering(clusters);
+
+
+
+
+
+
+
+        //List<List<int>> clusters = new List<List<int>>();
+
+        //for (int i = 0; i < graph.Length; i++) {
+        //    List<int> cluster = new List<int>();
+        //    DFSGConnectedGraph(i, cluster);
+
+        //    if (cluster.Count > 0) {
+        //        clusters.Add(cluster);
+        //    }
+        //}
+
+        //return BuildClustering(clusters);
     }
 
     private void DFSGConnectedGraph(int vertex, List<int> cluster) {

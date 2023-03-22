@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SimpleSAT.Proto;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -22,7 +23,7 @@ public class CrlClusteringSolution {
 
             Dictionary<int, int> condenser = new Dictionary<int, int>();
 
-            foreach (var cluster in clustering) { 
+            foreach (var cluster in clustering) {
                 if (!condenser.ContainsKey(cluster)) {
                     condenser.Add(cluster, c++);
                 }
@@ -34,11 +35,62 @@ public class CrlClusteringSolution {
         }
     }
 
-    public int this[int index] { 
+    public int this[int index] {
         get => clustering[index];
     }
 
     public void WriteClusteringToFile(string fileName) {
         File.WriteAllBytes(fileName, Serializer.Serialize(clustering));
+    }
+
+    public static int[] GetClusteringFromSolution(CrlClusteringInstance instance, ProtoLiteral[] assignments, ProtoVariableSet coClusterVariable) {
+        List<HashSet<int>> clusters = new List<HashSet<int>>();
+
+        foreach (ProtoLiteral lit in assignments) {
+            if (lit.IsNegation) {
+                continue;
+            }
+            if (lit.Variable != coClusterVariable.Variable) {
+                continue;
+            }
+            var indices = coClusterVariable.GetParameters(lit.Literal);
+            
+            int i = indices[0];
+            int j = indices[1];
+            
+            if (i == j) {
+                continue;
+            }
+
+            bool clusterWasFound = false;
+            foreach (HashSet<int> cluster in clusters) {
+                if (cluster.Contains(i) || cluster.Contains(j)) {
+                    cluster.Add(i);
+                    cluster.Add(j);
+                    clusterWasFound = true;
+                    break;
+                }
+            }
+
+            if (!clusterWasFound) {
+                clusters.Add(new HashSet<int>() { i, j });
+            }
+        }
+
+        int[] clustering = new int[instance.DataPointCount];
+
+        int clusterIndex = 0;
+        foreach (var cluster in clusters) {
+            foreach (int point in cluster) {
+                clustering[point] = clusterIndex;
+            }
+            clusterIndex++;
+        }
+        return clustering;
+    }
+
+    public override string ToString() {
+        // clustering divided by space
+        return string.Join(" ", clustering);
     }
 }
