@@ -10,24 +10,42 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 public class LogEncoding : IMaxCSPImplementation {
     public enum NotEqualClauseType {
         DomainBased,
-        CombinationBased
+        CombinationBased,
+        AuxVariableBased,
+        DomainAuxCombination,
+    }
+    public enum DomainRestrictionType {
+        Restricted,
+        Unrestricted
     }
 
     public NotEqualClauseType NotEqualType { get; set; }
+    public DomainRestrictionType DomainType { get; set; }
 
-    public LogEncoding(IWeightFunction weights, NotEqualClauseType type, int maxClusters = 0) : base(weights, maxClusters) {
-        NotEqualType = type;
+    public LogEncoding(IWeightFunction weights, NotEqualClauseType notEqualType, DomainRestrictionType domainType, int maxClusters = 0) : base(weights, maxClusters) {
+        NotEqualType = notEqualType;
+        DomainType = domainType;
     }
 
     protected int b;
 
+    private ProtoVariableSet eqVar;
+
     protected override void DomainEncoding() {
         b = Matht.Log2Ceil(n);
 
+        eqVar = new ProtoVariableSet(protoEncoding);
+
         int maxBitAssignment = K - 1;
+        int maxDomainValue = Matht.PowerOfTwo(b);
+
         ProtoLiteral[] literals = new ProtoLiteral[b];
 
-        if (NotEqualType == NotEqualClauseType.DomainBased) {
+        Console.WriteLine("n: " + n);
+        Console.WriteLine("b: " + b);
+        Console.WriteLine("K: " + K);
+
+        if (maxDomainValue != n && DomainType == DomainRestrictionType.Restricted) {
             for (int i = 0; i < n; i++) {
                 for (int bit = 0; bit < b; bit++) {
                     literals[bit] = X[i, bit];
@@ -35,6 +53,8 @@ public class LogEncoding : IMaxCSPImplementation {
 
                 protoEncoding.AddHards(Clauses.DisallowBitAssigmentsHigherThan(maxBitAssignment, literals));
             }
+        } else if (NotEqualType == NotEqualClauseType.DomainBased || NotEqualType == NotEqualClauseType.DomainAuxCombination) {
+            throw new NotImplementedException("DomainBased not compatible with unrestricted domains");
         }
     }
 
@@ -69,8 +89,24 @@ public class LogEncoding : IMaxCSPImplementation {
     protected override List<ProtoLiteral[]> NotEqual(int i, int j) {
         if (NotEqualType == NotEqualClauseType.DomainBased) {
             return NotEqual_Domain(i, j);
-        } else {
+        } else if (NotEqualType == NotEqualClauseType.CombinationBased) {
             return NotEqual_Comb(i, j);
+        } else if (NotEqualType == NotEqualClauseType.AuxVariableBased) {
+            return NotEqual_AuxVariables(i, j);
+        } else if (NotEqualType == NotEqualClauseType.DomainAuxCombination) {
+            return NotEqual_DomainAuxCombination(i, j);
+        }
+
+        throw new NotImplementedException("NotEqualType not implemented");
+    }
+
+    int counter = 0;
+    protected List<ProtoLiteral[]> NotEqual_DomainAuxCombination(int i, int j) {
+        counter++;
+        if (counter % 2 == 0) {
+            return NotEqual_Domain(i, j);
+        } else {
+            return NotEqual_AuxVariables(i, j);
         }
     }
 
@@ -102,6 +138,36 @@ public class LogEncoding : IMaxCSPImplementation {
 
             clauses.Add(clause);
         }
+
+        return clauses;
+    }
+
+    protected List<ProtoLiteral[]> NotEqual_AuxVariables(int i, int j) {
+        List<ProtoLiteral[]> clauses = new List<ProtoLiteral[]>();
+        ProtoLiteral[] clause = new ProtoLiteral[b];
+        for (int k = 0; k < b; k++) {
+            // Equality(k, i, j);
+            clause[k] = eqVar[i, j, k].Neg;
+            clauses.AddRange(EqualityClauses(i, j, k));
+        }
+
+        clauses.Add(clause);
+
+        return clauses;
+    }
+
+    private ProtoLiteral[][] EqualityClauses(int i, int j, int k) {
+        ProtoLiteral[][] clauses = new ProtoLiteral[4][];
+
+        // EQ_ijk <-> (b_ik <-> b_jk)
+        ProtoLiteral eq_kij = eqVar[i, j, k];
+        ProtoLiteral b_ki = X[i, k];
+        ProtoLiteral b_kj = X[j, k];
+
+        clauses[0] = new ProtoLiteral[] { eq_kij, b_ki, b_kj };
+        clauses[1] = new ProtoLiteral[] { eq_kij, b_ki.Neg, b_kj.Neg };
+        clauses[2] = new ProtoLiteral[] { eq_kij.Neg, b_ki, b_kj.Neg };
+        clauses[3] = new ProtoLiteral[] { eq_kij.Neg, b_ki.Neg, b_kj };
 
         return clauses;
     }

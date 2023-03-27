@@ -79,6 +79,10 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
             return GetEncodings(weights, Encodings.DEFUALT_ENCODINGS.Split());
         }
 
+        foreach (var encoding in encodingTypes) {
+            Console.WriteLine($"Encoding: '{encoding}'");
+        }
+
         var definedEncodings = Encodings.GetDefinedEncodings(weights);
 
         ICrlClusteringEncoder[] encodings = new ICrlClusteringEncoder[encodingTypes.Length];

@@ -19,12 +19,20 @@ public static class Encodings {
         AddEncoding("binary_domain_restricted", new BinaryForbidHighAssignmentsSmartEncoding(weights));
 
         AddEncoding("sparse", new SparseEncoding(weights));
-        AddEncoding("log", new LogEncoding(weights, LogEncoding.NotEqualClauseType.DomainBased));
+        AddEncoding("log", new LogEncoding(weights, LogEncoding.NotEqualClauseType.DomainBased, LogEncoding.DomainRestrictionType.Restricted));
         AddEncoding("order", new OrderEncoding(weights));
 
         // Deprecated
         AddEncoding("binary_domain_restricted_dumb", new BinaryForbidHighAssignmentsEncoding(weights));
-        AddEncoding("log_combination", new LogEncoding(weights, LogEncoding.NotEqualClauseType.CombinationBased));
+        AddEncoding("log_combination", new LogEncoding(weights, LogEncoding.NotEqualClauseType.CombinationBased, LogEncoding.DomainRestrictionType.Unrestricted));
+        AddEncoding("log_combination_domain_restricted", new LogEncoding(weights, LogEncoding.NotEqualClauseType.CombinationBased, LogEncoding.DomainRestrictionType.Restricted));
+
+        // corresponds to binary
+        AddEncoding("log_aux", new LogEncoding(weights, LogEncoding.NotEqualClauseType.AuxVariableBased, LogEncoding.DomainRestrictionType.Unrestricted));
+        AddEncoding("log_aux_domain_restricted", new LogEncoding(weights, LogEncoding.NotEqualClauseType.AuxVariableBased, LogEncoding.DomainRestrictionType.Restricted));
+
+        // New
+        AddEncoding("log_domain_aux", new LogEncoding(weights, LogEncoding.NotEqualClauseType.DomainAuxCombination, LogEncoding.DomainRestrictionType.Restricted));
 
         return encodings;
 
