@@ -28,7 +28,7 @@ internal abstract class BinaryEncodingBase : IProtoEncoder {
         bits = Matht.Log2Ceil(n);
 
         bitVar = new ProtoVariable2D(protoEncoding, n);
-        coClusterVar = new ProtoVariable2D(protoEncoding, n, true, "S");
+        coClusterVar = new ProtoVariable2D(protoEncoding, n);
         eqVar = new ProtoVariable3D(protoEncoding, n, n);
     }
 
@@ -160,8 +160,6 @@ internal abstract class BinaryEncodingBase : IProtoEncoder {
 internal class BinaryEncoding : BinaryEncodingBase {
     public BinaryEncoding(IWeightFunction weights) : base(weights) { }
 
-    public override string GetEncodingType() => "binary";
-
     protected override void AdditionalClauses() {
 
     }
@@ -169,8 +167,6 @@ internal class BinaryEncoding : BinaryEncodingBase {
 
 internal class BinaryForbidHighAssignmentsEncoding : BinaryEncodingBase {
     public BinaryForbidHighAssignmentsEncoding(IWeightFunction weights) : base(weights) { }
-
-    public override string GetEncodingType() => "binary_disallow";
 
     protected override void AdditionalClauses() {
         ProtoLiteral[] clause = new ProtoLiteral[bits];
@@ -193,8 +189,6 @@ internal class BinaryForbidHighAssignmentsEncoding : BinaryEncodingBase {
 internal class BinaryForbidHighAssignmentsSmartEncoding : BinaryEncodingBase {
     public BinaryForbidHighAssignmentsSmartEncoding(IWeightFunction weights) : base(weights) { }
 
-    public override string GetEncodingType() => "binary_disallow_smart";
-
     protected override void AdditionalClauses() {
         //protoEncoding.AddHards(Encodings.DisallowBitOverflowValues(bitVar, instance.DataPointCount, bits));
 
@@ -206,7 +200,7 @@ internal class BinaryForbidHighAssignmentsSmartEncoding : BinaryEncodingBase {
                 literals[b] = bitVar[b, i];
             }
 
-            protoEncoding.AddHards(Encodings.DisallowBitAssigmentsHigherThan(maxBitAssignment, literals));
+            protoEncoding.AddHards(Clauses.DisallowBitAssigmentsHigherThan(maxBitAssignment, literals));
         }
     }
 }

@@ -131,7 +131,7 @@ public static class Benchmarks {
     public static BenchResult Benchmark(CrlClusteringInstance cluster, ICrlClusteringEncoder encoding) {
         Console.WriteLine($"\nEncoding '{encoding.GetEncodingType()}' with {cluster.DataPointCount} data points and {cluster.EdgeCount} edges");
 
-        BenchEncode(cluster, encoding, out Times encodingTimes, out ulong literals, out ulong hards, out ulong softs);
+        BenchEncode(cluster, encoding, out Times encodingTimes, out ulong variableCount, out ulong hards, out ulong softs);
         Console.WriteLine($"Encoding time: {encodingTimes.Real}ms");
 
         Console.WriteLine($"\nSolving WCNF with: {Args.Instance.MaxSATSolver}");
@@ -158,7 +158,7 @@ public static class Benchmarks {
             Console.WriteLine("Solver could not finish in time or other error");
             return new BenchResult(encoding) {
                 EncodingTimes = encodingTimes,
-                LiteralCount = literals,
+                VariableCount = variableCount,
                 HardCount = hards,
                 SoftCount = softs
             };
@@ -181,13 +181,13 @@ public static class Benchmarks {
             Completed = true,
             EncodingTimes = encodingTimes,
             SolveTimes = result.Times,
-            LiteralCount = literals,
+            VariableCount = variableCount,
             HardCount = hards,
             SoftCount = softs,
             ExtraData = Args.Instance.GetParser().Parse(result.ProcessOutput)
         };
     }
-    private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out Times encodeTimes, out ulong literalCount, out ulong hardCount, out ulong softCount) {
+    private static void BenchEncode(CrlClusteringInstance instance, ICrlClusteringEncoder encoding, out Times encodeTimes, out ulong variableCount, out ulong hardCount, out ulong softCount) {
         Stopwatch sw = Stopwatch.StartNew();
 
         long start = Process.GetCurrentProcess().UserProcessorTime.Milliseconds;
@@ -198,11 +198,11 @@ public static class Benchmarks {
 
         encodeTimes = new Times(sw.ElapsedMilliseconds, userTime);
 
-        literalCount = (ulong)maxsat.LiteralCount;
+        variableCount = (ulong)maxsat.VariableCount;
         hardCount = (ulong)maxsat.HardCount;
         softCount = (ulong)maxsat.SoftCount;
 
-        new CNFWriter<int>(Args.Instance.WCNFFile(encoding), maxsat, maxsat.LiteralCount, maxsat.GetIndexAfterTop()).ConvertToWCNF();
+        new CNFWriter<int>(Args.Instance.WCNFFile(encoding), maxsat, maxsat.VariableCount, maxsat.GetIndexAfterTop()).ConvertToWCNF();
         Console.WriteLine($"Created WCNF file: {Args.Instance.WCNFFile(encoding)}");
     }
 
@@ -214,7 +214,7 @@ public static class Benchmarks {
         public bool Completed { get; set; }
         public Times EncodingTimes { get; set; }
         public Times SolveTimes { get; set; }
-        public ulong LiteralCount { get; set; }
+        public ulong VariableCount { get; set; }
         public ulong HardCount { get; set; }
         public ulong SoftCount { get; set; }
         public string ExtraData { get; set; }
@@ -230,7 +230,7 @@ public static class Benchmarks {
             sb.AppendLine($"    Completed     : {Completed}");
 
             if (SATSolution == null || !Completed) {
-                sb.AppendLine($"    Literals      : {ValueToString(LiteralCount)}");
+                sb.AppendLine($"    Variables     : {ValueToString(VariableCount)}");
                 sb.AppendLine($"    Hard clauses  : {ValueToString(HardCount)}");
                 sb.AppendLine($"    Soft clauses  : {ValueToString(SoftCount)}");
                 sb.AppendLine($"    Encoding real : {MsToSeconds(EncodingTimes.Real)}");
@@ -239,7 +239,7 @@ public static class Benchmarks {
             }
 
             sb.AppendLine($"    Solver status : {SATSolution.Solution}");
-            sb.AppendLine($"    Literals      : {ValueToString(LiteralCount)}");
+            sb.AppendLine($"    Literals      : {ValueToString(VariableCount)}");
             sb.AppendLine($"    Hard clauses  : {ValueToString(HardCount)}");
             sb.AppendLine($"    Soft clauses  : {ValueToString(SoftCount)}");
             sb.AppendLine($"    Cost          : {ValueToString(SATSolution.Cost)}");
@@ -259,7 +259,7 @@ public static class Benchmarks {
                 solution = SATSolution.Solution;
                 cost = SATSolution.Cost;
             }
-            return $"\"{Args.Instance.MaxSATSolver}\",\"{Path.GetFileName(Args.Instance.InputFile)}\",{cluster.DataPointCount},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{LiteralCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys},\"{ExtraData}\"";
+            return $"\"{Args.Instance.MaxSATSolver}\",\"{Path.GetFileName(Args.Instance.InputFile)}\",{cluster.DataPointCount},{cluster.EdgeCount},{cluster.UniqueEdgeCount},\"{Encoding.GetEncodingType()}\",{(Completed ? 1 : 0)},\"{solution}\",{VariableCount},{HardCount},{SoftCount},{cost},{EncodingTimes.Real},{EncodingTimes.User},{SolveTimes.Real},{SolveTimes.User},{SolveTimes.Sys},\"{ExtraData}\"";
         }
 
         private string MsToSeconds(long ms) {

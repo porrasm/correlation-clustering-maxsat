@@ -31,8 +31,6 @@ public abstract class IMaxCSPImplementation : IProtoEncoder {
         S = new ProtoVariableSet(protoEncoding, "S");
         D = new ProtoVariableSet(protoEncoding, "D");
 
-        Console.WriteLine("K = " + K);
-
         DomainEncoding();
 
         foreach (var edge in instance.Edges_I_LessThan_J()) {

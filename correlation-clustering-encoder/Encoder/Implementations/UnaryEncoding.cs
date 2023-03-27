@@ -15,8 +15,6 @@ public class UnaryEncoding : IProtoEncoder {
     private ProtoVariable3D aVar;
 
     private int N, K;
-
-    public override string GetEncodingType() => "unary";
     #endregion
 
     public UnaryEncoding(IWeightFunction weights) : base(weights) {
@@ -71,7 +69,7 @@ public class UnaryEncoding : IProtoEncoder {
             for (int k = 0; k < K; k++) {
                 clusterClause[k] = yVar[k, i];
             }
-            protoEncoding.AddHards(Encodings.ExactlyOneSequential(clusterClause, cardinalityAuxVar.Generate1DVariable(i)));
+            protoEncoding.AddHards(Clauses.ExactlyOneSequential(clusterClause, cardinalityAuxVar.Generate1DVariable(i)));
         }
     }
 

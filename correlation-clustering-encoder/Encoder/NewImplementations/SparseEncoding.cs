@@ -8,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 public class SparseEncoding : IMaxCSPImplementation {
-
-    public override string GetEncodingType() => "sparse";
-
     private ProtoVariableSet cardinalityAuxVar;
     
     
@@ -29,7 +26,7 @@ public class SparseEncoding : IMaxCSPImplementation {
             protoEncoding.AddHard(alo);
 
             // AMO
-            protoEncoding.AddHards(Encodings.AtMostOneSequential(alo, cardinalityAuxVar.GetPrefixedSubset(i)));
+            protoEncoding.AddHards(Clauses.AtMostOneSequential(alo, cardinalityAuxVar.GetPrefixedSubset(i)));
         }
     }
     

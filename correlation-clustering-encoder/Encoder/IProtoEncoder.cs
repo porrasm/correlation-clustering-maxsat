@@ -17,6 +17,8 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     protected ProtoEncoding protoEncoding;
     protected CrlClusteringInstance instance;
     public ProtoLiteralTranslator Translation { get; private set; }
+
+    public string EncodingName { get; set; }
     #endregion
 
     public IProtoEncoder(IWeightFunction weights) {
@@ -24,7 +26,13 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
         instance = new CrlClusteringInstance(0, 0, 0);
     }
 
+    public string GetEncodingType() => EncodingName;
+
     public SATEncoding Encode(CrlClusteringInstance instance) {
+        if (GetEncodingType() == null) {
+            throw new Exception("Encoding type not set.");
+        }
+
         Console.WriteLine($"Begin '{GetEncodingType()}' encoding...");
         this.instance = instance;
         Console.Write("    1 / 4 Initialize weights...   ");
@@ -61,42 +69,23 @@ public abstract class IProtoEncoder : ICrlClusteringEncoder {
     }
 
     #region abstract
-    public abstract string GetEncodingType();
     protected abstract void ProtoEncode();
     protected abstract CrlClusteringSolution GetSolution(SATSolution solution);
     #endregion
 
     #region static
-    //private const string DEFAULT_ENCODINGS = "transitive unary binary binary_disallow order_new order_aeq";
-    private const string DEFAULT_ENCODINGS = "transitive unary binary binary_disallow binary_disallow_smart sparse log";
     public static ICrlClusteringEncoder[] GetEncodings(IWeightFunction weights, params string[]? encodingTypes) {
         if (encodingTypes == null || encodingTypes.Length == 0) {
-            return GetEncodings(weights, DEFAULT_ENCODINGS.Split());
+            return GetEncodings(weights, Encodings.DEFUALT_ENCODINGS.Split());
         }
+
+        var definedEncodings = Encodings.GetDefinedEncodings(weights);
 
         ICrlClusteringEncoder[] encodings = new ICrlClusteringEncoder[encodingTypes.Length];
         for (int i = 0; i < encodingTypes.Length; i++) {
-            encodings[i] = GetEncoding(encodingTypes[i], weights);
+            encodings[i] = definedEncodings[encodingTypes[i]];
         }
         return encodings;
-    }
-
-    private static ICrlClusteringEncoder GetEncoding(string encodingType, IWeightFunction weights) {
-        return encodingType.Trim() switch {
-            "transitive" => new TransitiveEncoding(weights),
-            "unary" => new UnaryEncoding(weights),
-            "binary" => new BinaryEncoding(weights),
-            "binary_disallow" => new BinaryForbidHighAssignmentsEncoding(weights),
-            "binary_disallow_smart" => new BinaryForbidHighAssignmentsSmartEncoding(weights),
-            "order_co" => new OrderEncoding_CoCluster(weights),
-            "order_new" => new OrderEncoding_New(weights),
-            "order_aeq" => new OrderEncodingAeq(weights),
-            "sparse" => new SparseEncoding(weights),
-            "log" => new LogEncoding(weights),
-            "log_domain_restricted" => new LogEncodingDomainRestricted(weights),
-            "order" => new OrderEncoding(weights),
-            _ => throw new Exception("Unknown encoding: " + encodingType)
-        };
     }
     #endregion
 }
