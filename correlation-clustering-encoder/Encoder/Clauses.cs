@@ -8,6 +8,14 @@ using System.Threading.Tasks;
 namespace CorrelationClusteringEncoder.Encoder;
 
 public static class Clauses {
+    public static List<ProtoLiteral[]> VariableClausesEquivalence(ProtoLiteral variable, List<ProtoLiteral[]> clauses) {
+        List<ProtoLiteral[]> newClauses = new();
+        foreach (ProtoLiteral[] clause in clauses) {
+            newClauses.Add(new ProtoLiteral[] { variable.Flip }.Concat(clause).ToArray());
+        }
+        return newClauses;
+    }
+
     public static ProtoLiteral[] AtLeastOne(ProtoLiteral[] literals) {
         return literals.ToArray();
     }

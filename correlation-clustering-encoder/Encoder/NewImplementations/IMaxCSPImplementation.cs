@@ -27,9 +27,9 @@ public abstract class IMaxCSPImplementation : IProtoEncoder {
             K = n;
         }
 
-        X = new ProtoVariableSet(protoEncoding, "X");
-        S = new ProtoVariableSet(protoEncoding, "S");
-        D = new ProtoVariableSet(protoEncoding, "D");
+        X = new ProtoVariableSet(protoEncoding);
+        S = new ProtoVariableSet(protoEncoding);
+        D = new ProtoVariableSet(protoEncoding);
 
         DomainEncoding();
 
@@ -38,30 +38,32 @@ public abstract class IMaxCSPImplementation : IProtoEncoder {
                 continue;
             }
             if (edge.Cost == double.PositiveInfinity) {
-                Equal(edge.I, edge.J);
+                protoEncoding.AddHards(Equal(edge.I, edge.J));
                 continue;
             }
             if (edge.Cost == double.NegativeInfinity) {
-                NotEqual(edge.I, edge.J);
+                protoEncoding.AddHards(NotEqual(edge.I, edge.J));
                 continue;
             }
             if (edge.Cost > 0) {
-                CVEqual(edge.I, edge.J);
+                protoEncoding.AddHards(Clauses.VariableClausesEquivalence(S[edge.I, edge.J], Equal(edge.I, edge.J)));
                 protoEncoding.AddSoft(weights.GetWeight(edge.Cost), S[edge.I, edge.J]);
                 continue;
             }
 
-            CVNotEqual(edge.I, edge.J);
+            protoEncoding.AddHards(Clauses.VariableClausesEquivalence(D[edge.I, edge.J].Neg, NotEqual(edge.I, edge.J)));
             protoEncoding.AddSoft(weights.GetWeight(-edge.Cost), D[edge.I, edge.J].Neg);
         }
     }
 
-    protected abstract void DomainEncoding();
-    protected abstract void Equal(int i, int j);
-    protected abstract void CVEqual(int i, int j);
+    protected ProtoLiteral[] NewClause(params ProtoLiteral[] literals) {
+        return literals;
+    }
 
-    protected abstract void NotEqual(int i, int j);
-    protected abstract void CVNotEqual(int i, int j);
+    protected abstract void DomainEncoding();
+    protected abstract List<ProtoLiteral[]> Equal(int i, int j);
+
+    protected abstract List<ProtoLiteral[]> NotEqual(int i, int j);
 
     protected sealed override CrlClusteringSolution GetSolution(SATSolution solution) {
         return new CrlClusteringSolution(instance, CrlClusteringSolution.GetClusteringFromSolution(instance, solution.AsProtoLiterals(Translation), S));

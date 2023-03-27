@@ -52,72 +52,46 @@ public class LogEncoding : IMaxCSPImplementation {
     }
 
     #region equal
-    protected override void Equal(int i, int j) {
-        protoEncoding.CommentHard($"Equal({i}, {j})");
+    protected override List<ProtoLiteral[]> Equal(int i, int j) {
+        List<ProtoLiteral[]> clauses = new();
+
         for (int h = 0; h < b; h++) {
-            protoEncoding.AddHard(X[i, h].Neg, X[j, h]);
-            protoEncoding.AddHard(X[i, h], X[j, h].Neg);
+            clauses.Add(NewClause(X[i, h].Neg, X[j, h]));
+            clauses.Add(NewClause(X[i, h], X[j, h].Neg));
         }
+
+        return clauses;
     }
 
-    protected override void CVEqual(int i, int j) {
-        protoEncoding.CommentHard($"CVEqual({i}, {j})");
-        for (int h = 0; h < b; h++) {
-            protoEncoding.AddHard(S[i, j].Neg, X[i, h].Neg, X[j, h]);
-            protoEncoding.AddHard(S[i, j].Neg, X[i, h], X[j, h].Neg);
-        }
-    }
     #endregion
 
     #region not equal
-    protected override void NotEqual(int i, int j) {
-        protoEncoding.CommentHard($"NotEqual({i}, {j})");
+    protected override List<ProtoLiteral[]> NotEqual(int i, int j) {
         if (NotEqualType == NotEqualClauseType.DomainBased) {
-            NotEqual_Domain(i, j);
+            return NotEqual_Domain(i, j);
         } else {
-            NotEqual_Comb(i, j);
+            return NotEqual_Comb(i, j);
         }
     }
 
-    protected override void CVNotEqual(int i, int j) {
-        protoEncoding.CommentHard($"CVNotEqual({i}, {j})");
-        if (NotEqualType == NotEqualClauseType.DomainBased) {
-            CVNotEqual_Domain(i, j);
-        } else {
-            CVNotEqual_Comb(i, j);
-        }
-    }
+    protected List<ProtoLiteral[]> NotEqual_Domain(int i, int j) {
+        List<ProtoLiteral[]> clauses = new();
 
-
-
-
-    protected void NotEqual_Domain(int i, int j) {
         for (int k = 0; k < K; k++) {
             ProtoLiteral[] clause = new ProtoLiteral[2 * b];
             for (int h = 0; h < b; h++) {
                 clause[2 * h] = p(i, k, h).Flip;
                 clause[2 * h + 1] = p(j, k, h).Flip;
             }
-            protoEncoding.AddHard(clause);
+            clauses.Add(clause);
         }
+
+        return clauses;
     }
 
-    protected void CVNotEqual_Domain(int i, int j) {
-        for (int k = 0; k < K; k++) {
-            ProtoLiteral[] clause = new ProtoLiteral[2 * b + 1];
-            clause[2 * b] = D[i, j];
-            for (int h = 0; h < b; h++) {
-                clause[2 * h] = p(i, k, h).Flip;
-                clause[2 * h + 1] = p(j, k, h).Flip;
-            }
-            protoEncoding.AddHard(clause);
-        }
-    }
+    protected List<ProtoLiteral[]> NotEqual_Comb(int i, int j) {
+        List<ProtoLiteral[]> clauses = new();
 
-
-
-
-    protected void NotEqual_Comb(int i, int j) {
         for (int k = 0; k < Matht.PowerOfTwo(b); k++) {
             ProtoLiteral[] clause = new ProtoLiteral[2 * b];
 
@@ -126,22 +100,10 @@ public class LogEncoding : IMaxCSPImplementation {
                 clause[2 * h + 1] = p(j, k, h);
             }
 
-            protoEncoding.AddHard(clause);
+            clauses.Add(clause);
         }
-    }
 
-    protected void CVNotEqual_Comb(int i, int j) {
-        for (int k = 0; k < Matht.PowerOfTwo(b); k++) {
-            ProtoLiteral[] clause = new ProtoLiteral[2 * b + 1];
-            clause[2 * b] = D[i, j];
-
-            for (int h = 0; h < b; h++) {
-                clause[2 * h] = p(i, k, h);
-                clause[2 * h + 1] = p(j, k, h);
-            }
-
-            protoEncoding.AddHard(clause);
-        }
+        return clauses;
     }
     #endregion
 }

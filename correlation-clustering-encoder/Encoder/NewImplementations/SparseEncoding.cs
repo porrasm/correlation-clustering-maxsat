@@ -1,4 +1,5 @@
 ﻿using CorrelationClusteringEncoder.Encoder.Implementations;
+using SimpleSAT;
 using SimpleSAT.Proto;
 using System;
 using System.Collections.Generic;
@@ -31,28 +32,24 @@ public class SparseEncoding : IMaxCSPImplementation {
     }
     
 
-    protected override void Equal(int i, int j) {
-        for (int k = 0; k < K; k++) {
-            protoEncoding.AddHard(X[i, k].Neg, X[j, k]);
-            protoEncoding.AddHard(X[i, k], X[j, k].Neg);
-        }
-    }
-    protected override void CVEqual(int i, int j) {
-        for (int k = 0; k < K; k++) {
-            protoEncoding.AddHard(S[i, j].Neg, X[i, k].Neg, X[j, k]);
-            protoEncoding.AddHard(S[i, j].Neg, X[i, k], X[j, k].Neg);
-        }
-    }
-    
+    protected override List<ProtoLiteral[]> Equal(int i, int j) {
+        List<ProtoLiteral[]> clauses = new List<ProtoLiteral[]>();
 
-    protected override void NotEqual(int i, int j) {
         for (int k = 0; k < K; k++) {
-            protoEncoding.AddHard(X[i, k].Neg, X[j, k].Neg);
+            clauses.Add(NewClause(X[i, k].Neg, X[j, k]));
+            clauses.Add(NewClause(X[i, k], X[j, k].Neg));
         }
-    }
-    protected override void CVNotEqual(int i, int j) {
+
+        return clauses;
+    }   
+
+    protected override List<ProtoLiteral[]> NotEqual(int i, int j) {
+        List<ProtoLiteral[]> clauses = new List<ProtoLiteral[]>();
+
         for (int k = 0; k < K; k++) {
-            protoEncoding.AddHard(D[i, j], X[i, k].Neg, X[j, k].Neg);
+            clauses.Add(NewClause(X[i, k].Neg, X[j, k].Neg));
         }
+
+        return clauses;
     }
 }
