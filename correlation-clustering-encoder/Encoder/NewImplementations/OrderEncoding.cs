@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace CorrelationClusteringEncoder.Encoder.Implementations;
 public class OrderEncoding : IMaxCSPImplementation {
-    public OrderEncoding(IWeightFunction weights, int maxClusters = 0) : base(weights, maxClusters) { }
+    public OrderEncoding(IWeightFunction weights) : base(weights) { }
 
 
 
@@ -21,7 +21,7 @@ public class OrderEncoding : IMaxCSPImplementation {
     }
 
 
-    protected override List<ProtoLiteral[]> Equal(int i, int j) {
+    protected override List<ProtoLiteral[]> Equal(bool hard, int i, int j) {
         List<ProtoLiteral[]> clauses = new();
 
         for (int k = 0; k < K - 1; k++) {
@@ -32,7 +32,7 @@ public class OrderEncoding : IMaxCSPImplementation {
         return clauses;
     }
 
-    protected override List<ProtoLiteral[]> NotEqual(int i, int j) {
+    protected override List<ProtoLiteral[]> NotEqual(bool hard, int i, int j) {
         List<ProtoLiteral[]> clauses = new();
 
         clauses.Add(NewClause(X[i, 0], X[j, 0]));

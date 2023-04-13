@@ -13,8 +13,9 @@ internal abstract class BinaryEncodingBase : IProtoEncoder {
     #region fields
     protected int bits;
 
-    protected ProtoVariable2D bitVar, coClusterVar;
+    protected ProtoVariable2D bitVar;
     protected ProtoVariable3D eqVar;
+    protected ProtoVariableSet coClusterVar;
     #endregion
 
     public BinaryEncodingBase(IWeightFunction weights) : base(weights) { }
@@ -28,11 +29,15 @@ internal abstract class BinaryEncodingBase : IProtoEncoder {
         bits = Matht.Log2Ceil(n);
 
         bitVar = new ProtoVariable2D(protoEncoding, n);
-        coClusterVar = new ProtoVariable2D(protoEncoding, n);
+        coClusterVar = new ProtoVariableSet(protoEncoding);
         eqVar = new ProtoVariable3D(protoEncoding, n, n);
     }
 
     protected override void ProtoEncode() {
+        if (Args.Instance.K > 0) {
+            throw new NotImplementedException();
+        }
+
         Init();
 
         EqualityAndSameCluster();
@@ -143,7 +148,7 @@ internal abstract class BinaryEncodingBase : IProtoEncoder {
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(instance, solution.AsProtoLiterals(Translation), coClusterVar).GetClustering(), true);
+        return new CrlClusteringSolution(instance, CrlClusteringSolution.GetClusteringFromSolution(instance, solution.AsProtoLiterals(Translation), coClusterVar));
     }
 
     protected ProtoLiteral GetBitLiteral(int bitIndex, int variable, int value) {

@@ -43,7 +43,7 @@ public class CrlClusteringSolution {
         File.WriteAllBytes(fileName, Serializer.Serialize(clustering));
     }
 
-    public static int[] GetClusteringFromSolution(CrlClusteringInstance instance, ProtoLiteral[] assignments, ProtoVariableSet coClusterVariable) {
+    public static int[] GetClusteringFromSolution(CrlClusteringInstance instance, ProtoLiteral[] assignments, IProtoVariableSet coClusterVariable) {
         List<HashSet<int>> clusters = new List<HashSet<int>>();
 
         foreach (ProtoLiteral lit in assignments) {
@@ -61,9 +61,11 @@ public class CrlClusteringSolution {
             if (i == j) {
                 continue;
             }
-
+            
             bool clusterWasFound = false;
-            foreach (HashSet<int> cluster in clusters) {
+            for (int ci = 0; ci < clusters.Count; ci++) {
+                var cluster = clusters[ci];
+                
                 if (cluster.Contains(i) || cluster.Contains(j)) {
                     cluster.Add(i);
                     cluster.Add(j);
@@ -78,6 +80,10 @@ public class CrlClusteringSolution {
         }
 
         int[] clustering = new int[instance.DataPointCount];
+        // initialize all to -1
+        for (int i = 0; i < clustering.Length; i++) {
+            clustering[i] = -1;
+        }
 
         int clusterIndex = 0;
         foreach (var cluster in clusters) {
@@ -86,6 +92,14 @@ public class CrlClusteringSolution {
             }
             clusterIndex++;
         }
+
+        // assign all points that are not in a cluster to a new cluster
+        for (int i = 0; i < clustering.Length; i++) {
+            if (clustering[i] == -1) {
+                clustering[i] = clusterIndex++;
+            }
+        }
+
         return clustering;
     }
 

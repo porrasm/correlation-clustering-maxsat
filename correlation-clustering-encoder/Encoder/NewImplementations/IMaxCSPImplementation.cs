@@ -16,8 +16,10 @@ public abstract class IMaxCSPImplementation : IProtoEncoder {
     protected int n { get; private set; }
     protected int K { get; private set; }
 
-    protected IMaxCSPImplementation(IWeightFunction weights, int maxClusters) : base(weights) {
-        K = maxClusters;
+    public bool AlwaysUseDVariable { get; set; } = true;
+
+    protected IMaxCSPImplementation(IWeightFunction weights) : base(weights) {
+        K = Args.Instance.K;
     }
 
     protected sealed override void ProtoEncode() {
@@ -38,21 +40,27 @@ public abstract class IMaxCSPImplementation : IProtoEncoder {
                 continue;
             }
             if (edge.Cost == double.PositiveInfinity) {
-                protoEncoding.AddHards(Equal(edge.I, edge.J));
+                protoEncoding.AddHards(Equal(true, edge.I, edge.J));
                 continue;
             }
             if (edge.Cost == double.NegativeInfinity) {
-                protoEncoding.AddHards(NotEqual(edge.I, edge.J));
+                protoEncoding.AddHards(NotEqual(true, edge.I, edge.J));
                 continue;
             }
             if (edge.Cost > 0) {
-                protoEncoding.AddHards(Clauses.VariableClausesEquivalence(S[edge.I, edge.J], Equal(edge.I, edge.J)));
+                protoEncoding.AddHards(Clauses.VariableClausesEquivalence(S[edge.I, edge.J], Equal(false, edge.I, edge.J)));
                 protoEncoding.AddSoft(weights.GetWeight(edge.Cost), S[edge.I, edge.J]);
                 continue;
             }
 
-            protoEncoding.AddHards(Clauses.VariableClausesEquivalence(D[edge.I, edge.J].Neg, NotEqual(edge.I, edge.J)));
-            protoEncoding.AddSoft(weights.GetWeight(-edge.Cost), D[edge.I, edge.J].Neg);
+            var notEqual = NotEqual(false, edge.I, edge.J);
+            
+            if (AlwaysUseDVariable || notEqual.Count > 1) {
+                protoEncoding.AddHards(Clauses.VariableClausesEquivalence(D[edge.I, edge.J].Neg, notEqual));
+                protoEncoding.AddSoft(weights.GetWeight(-edge.Cost), D[edge.I, edge.J].Neg);
+            } else {
+                protoEncoding.AddSoft(weights.GetWeight(-edge.Cost), notEqual[0]);
+            }
         }
     }
 
@@ -61,9 +69,9 @@ public abstract class IMaxCSPImplementation : IProtoEncoder {
     }
 
     protected abstract void DomainEncoding();
-    protected abstract List<ProtoLiteral[]> Equal(int i, int j);
+    protected abstract List<ProtoLiteral[]> Equal(bool hard, int i, int j);
 
-    protected abstract List<ProtoLiteral[]> NotEqual(int i, int j);
+    protected abstract List<ProtoLiteral[]> NotEqual(bool hard, int i, int j);
 
     protected sealed override CrlClusteringSolution GetSolution(SATSolution solution) {
         return new CrlClusteringSolution(instance, CrlClusteringSolution.GetClusteringFromSolution(instance, solution.AsProtoLiterals(Translation), S));

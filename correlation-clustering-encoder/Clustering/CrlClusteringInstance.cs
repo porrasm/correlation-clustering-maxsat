@@ -60,6 +60,8 @@ public class CrlClusteringInstance {
             return new CrlClusteringInstance(similarityMatrix);
         }
 
+        // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12
+        // 00 01 02 03 10 01 02 03 ...
         List<int> all = new List<int>();
         for (int i = 0; i < DataPointCount; i++) {
             all.Add(i);
@@ -73,6 +75,9 @@ public class CrlClusteringInstance {
             all.RemoveAt(ri);
             points.Add(point);
         }
+
+        // Maintain variable ordering
+        points = points.OrderBy(x => x).ToList();
 
         double[,] matrix = new double[n, n];
         for (int i = 0; i < n; i++) {

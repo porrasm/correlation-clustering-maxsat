@@ -36,3 +36,25 @@ public class MinimumRangeMultiplied : IWeightFunction {
         return (ulong)Math.Round(initialWeight * (1.0 / minimumDiffernce));
     }
 }
+
+public class RoundToDecimals : IWeightFunction {
+    #region fields
+    private double multiplier;
+    #endregion
+
+    public RoundToDecimals(int decimals) {
+        int val = 1;
+
+        for (int i = 0; i < decimals; i++) {
+            val *= 10;
+        }
+
+        multiplier = val;
+    }
+
+    public void Initialize(CrlClusteringInstance clusteringInstance) { }
+    public ulong GetWeight(double initialWeight) {
+        return (ulong)Math.Round(initialWeight * multiplier);
+    }
+}
+

@@ -11,7 +11,7 @@ namespace CorrelationClusteringEncoder.Encoder.Implementations;
 
 public class TransitiveEncoding : IProtoEncoder {
     #region fields
-    private ProtoVariable2D coClusterVar;
+    private ProtoVariableSet coClusterVar;
     #endregion
 
 
@@ -19,7 +19,13 @@ public class TransitiveEncoding : IProtoEncoder {
 
 
     protected override void ProtoEncode() {
-        coClusterVar = new ProtoVariable2D(protoEncoding, instance.DataPointCount, true);
+        if (Args.Instance.K > 0) {
+            throw new NotImplementedException();
+        }
+
+        coClusterVar = new ProtoVariableSet(protoEncoding) {
+            UseSetIndices = true
+        };
 
         foreach (Edge edge in instance.Edges_I_LessThan_J()) {
             ProtoLiteral x_ij = coClusterVar[edge.I, edge.J];
@@ -71,6 +77,6 @@ public class TransitiveEncoding : IProtoEncoder {
     }
 
     protected override CrlClusteringSolution GetSolution(SATSolution solution) {
-        return new CrlClusteringSolution(instance, new CoClusterSolutionParser(instance, solution.AsProtoLiterals(Translation), coClusterVar).GetClustering());
+        return new CrlClusteringSolution(instance, CrlClusteringSolution.GetClusteringFromSolution(instance, solution.AsProtoLiterals(Translation), coClusterVar));
     }
 }

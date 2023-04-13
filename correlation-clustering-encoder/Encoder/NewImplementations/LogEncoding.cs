@@ -22,30 +22,26 @@ public class LogEncoding : IMaxCSPImplementation {
     public NotEqualClauseType NotEqualType { get; set; }
     public DomainRestrictionType DomainType { get; set; }
 
-    public LogEncoding(IWeightFunction weights, NotEqualClauseType notEqualType, DomainRestrictionType domainType, int maxClusters = 0) : base(weights, maxClusters) {
+    public LogEncoding(IWeightFunction weights, NotEqualClauseType notEqualType, DomainRestrictionType domainType) : base(weights) {
         NotEqualType = notEqualType;
         DomainType = domainType;
     }
 
     protected int b;
 
-    private ProtoVariableSet eqVar;
+    private ProtoVariableSet Q;
 
     protected override void DomainEncoding() {
-        b = Matht.Log2Ceil(n);
+        b = Matht.Log2Ceil(K);
 
-        eqVar = new ProtoVariableSet(protoEncoding);
+        Q = new ProtoVariableSet(protoEncoding);
 
         int maxBitAssignment = K - 1;
         int maxDomainValue = Matht.PowerOfTwo(b);
 
         ProtoLiteral[] literals = new ProtoLiteral[b];
 
-        Console.WriteLine("n: " + n);
-        Console.WriteLine("b: " + b);
-        Console.WriteLine("K: " + K);
-
-        if (maxDomainValue != n && DomainType == DomainRestrictionType.Restricted) {
+        if (n != K || DomainType == DomainRestrictionType.Restricted) {
             for (int i = 0; i < n; i++) {
                 for (int bit = 0; bit < b; bit++) {
                     literals[bit] = X[i, bit];
@@ -72,7 +68,7 @@ public class LogEncoding : IMaxCSPImplementation {
     }
 
     #region equal
-    protected override List<ProtoLiteral[]> Equal(int i, int j) {
+    protected override List<ProtoLiteral[]> Equal(bool hard, int i, int j) {
         List<ProtoLiteral[]> clauses = new();
 
         for (int h = 0; h < b; h++) {
@@ -86,7 +82,7 @@ public class LogEncoding : IMaxCSPImplementation {
     #endregion
 
     #region not equal
-    protected override List<ProtoLiteral[]> NotEqual(int i, int j) {
+    protected override List<ProtoLiteral[]> NotEqual(bool hard, int i, int j) {
         if (NotEqualType == NotEqualClauseType.DomainBased) {
             return NotEqual_Domain(i, j);
         } else if (NotEqualType == NotEqualClauseType.CombinationBased) {
@@ -147,8 +143,8 @@ public class LogEncoding : IMaxCSPImplementation {
         ProtoLiteral[] clause = new ProtoLiteral[b];
         for (int k = 0; k < b; k++) {
             // Equality(k, i, j);
-            clause[k] = eqVar[i, j, k].Neg;
-            clauses.AddRange(EqualityClauses(i, j, k));
+            clause[k] = Q[i, j, k].Neg;
+            protoEncoding.AddHards(EqualityClauses(i, j, k));
         }
 
         clauses.Add(clause);
@@ -160,14 +156,14 @@ public class LogEncoding : IMaxCSPImplementation {
         ProtoLiteral[][] clauses = new ProtoLiteral[4][];
 
         // EQ_ijk <-> (b_ik <-> b_jk)
-        ProtoLiteral eq_kij = eqVar[i, j, k];
-        ProtoLiteral b_ki = X[i, k];
-        ProtoLiteral b_kj = X[j, k];
+        ProtoLiteral Q_ijk = Q[i, j, k];
+        ProtoLiteral X_ik = X[i, k];
+        ProtoLiteral X_jk = X[j, k];
 
-        clauses[0] = new ProtoLiteral[] { eq_kij, b_ki, b_kj };
-        clauses[1] = new ProtoLiteral[] { eq_kij, b_ki.Neg, b_kj.Neg };
-        clauses[2] = new ProtoLiteral[] { eq_kij.Neg, b_ki, b_kj.Neg };
-        clauses[3] = new ProtoLiteral[] { eq_kij.Neg, b_ki.Neg, b_kj };
+        clauses[0] = new[] { Q_ijk, X_ik, X_jk };
+        clauses[1] = new[] { Q_ijk, X_ik.Neg, X_jk.Neg };
+        clauses[2] = new[] { Q_ijk.Neg, X_ik, X_jk.Neg };
+        clauses[3] = new[] { Q_ijk.Neg, X_ik.Neg, X_jk };
 
         return clauses;
     }

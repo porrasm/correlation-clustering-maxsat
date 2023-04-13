@@ -63,6 +63,18 @@ public class Args {
     [Option("timestamp-csv", Required = false, HelpText = "Set to true to timestamp CSV files.")]
     public bool TimestampCSV { get; set; }
 
+    // bool checkPreviousFailures = false;
+    [Option("check-previous-failures", Required = false, HelpText = "Set to true to check previous failures and skip benchmarks if they failed before on lower data point count.")]
+    public bool CheckPreviousFailures { get; set; }
+
+    // bool log-solver-output = false;
+    [Option("log-solver-output", Required = false, HelpText = "Set to true to log solver output to a file.")]
+    public bool LogSolverOutput { get; set; }
+
+    // k = max clusters
+    [Option('k', Required = false, HelpText = "Maximum number of clusters to use, leave empty for unlimited.")]
+    public int K { get; set; }
+
     public string GetDirectory() {
         if (Directory != null && Directory.Length > 0) {
             return Directory;

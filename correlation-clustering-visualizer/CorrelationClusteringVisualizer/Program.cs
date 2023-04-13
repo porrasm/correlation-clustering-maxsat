@@ -30,10 +30,11 @@ public static class Program {
         foreach (string file in Directory.GetFiles(cnfDirectory)) {
             if (Path.GetFileName(file).EndsWith(".solution")) {
                 Console.WriteLine("Found solution: " + file);
-                Visualize(inputProblemImage, file, directory);
+                Visualize(matrix, inputProblemImage, file, directory);
             }
         }
 
+        Console.ReadLine();
     }
 
     private static void DeletePreviousSolutions(string dir) {
@@ -131,7 +132,7 @@ public static class Program {
         override public string ToString() => $"({X}, {Y})";
     }
 
-    public static void Visualize(string imageFile, string solutionFile, string outputDir) {
+    public static void Visualize(double[,] matrix, string imageFile, string solutionFile, string outputDir) {
         Console.WriteLine("Visualize " + solutionFile);
         Bitmap img = new Bitmap(imageFile);
 
@@ -141,12 +142,40 @@ public static class Program {
 
         Console.WriteLine("Solution length: " + solution.Length);
 
-        int index = 0;
+        bool subSolution = matrix.GetLength(0) != solution.Length;
+        HashSet<int> includedPixels = new HashSet<int>();
+        if (subSolution) {
+            Console.WriteLine("Sub solution of size: " + solution.Length);
+            RandomNPoints(matrix, solution.Length, out List<int> points);
+            foreach (int point in points) {
+                includedPixels.Add(point);
+                Console.WriteLine("    Included pixel: " + point);
+            }
+        }
+
+        //if (matrix.GetLength(0) != solution.Length) {
+        //    throw new Exception("Solution length does not match matrix length");
+        //}
+        
+
+        int pixelIndex = 0;
+        int solutionIndex = 0;
+
         for (int x = 0; x < img.Width; x++) {
             for (int y = 0; y < img.Height; y++) {
                 if (img.GetPixel(x, y).ToArgb() == Color.White.ToArgb()) {
-                    img.SetPixel(x, y, UniqueColor.GetColor(solution[index] + 2));
-                    index++;
+                    if (subSolution && !includedPixels.Contains(pixelIndex)) {
+                        pixelIndex++;
+                        continue;
+                    }
+
+                    Console.WriteLine("Pixel index: " + pixelIndex);
+                    Console.WriteLine("Solution index: " + solutionIndex);
+                    Console.WriteLine();
+
+                    img.SetPixel(x, y, UniqueColor.GetColor(solution[solutionIndex] + 2));
+                    solutionIndex++;
+                    pixelIndex++;
                 }
                 // img.SetPixel(x, y, Color.FromArgb(x, y, 0));
             }
@@ -155,6 +184,34 @@ public static class Program {
         string path = $"{outputDir}/{Path.GetFileName(solutionFile)}.bmp";
         Console.WriteLine("Save solution: " + path);
         img.Save(path);
+    }
+
+    public static double[,] RandomNPoints(double[,] similarityMatrix, int n, out List<int> points) {
+        int seed = 123456789;
+        Console.WriteLine("Random points: " + n);
+
+        List<int> all = new List<int>();
+        for (int i = 0; i < similarityMatrix.GetLength(0); i++) {
+            all.Add(i);
+        }
+        Random rnd = seed == 0 ? new Random() : new Random(seed);
+        
+        points = new List<int>();
+        for (int i = 0; i < n; i++) {
+            int ri = rnd.Next(all.Count);
+            int point = all[ri];
+            all.RemoveAt(ri);
+            points.Add(point);
+        }
+
+        double[,] matrix = new double[n, n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                matrix[i, j] = similarityMatrix[points[i], points[j]];
+            }
+        }
+
+        return matrix;
     }
 }
 

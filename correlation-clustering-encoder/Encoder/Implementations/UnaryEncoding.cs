@@ -32,6 +32,10 @@ public class UnaryEncoding : IProtoEncoder {
     }
 
     protected override void ProtoEncode() {
+        if (Args.Instance.K > 0) {
+            throw new NotImplementedException();
+        }
+
         Init();
         ExactlyOneCluster();
 

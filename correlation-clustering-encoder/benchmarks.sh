@@ -17,6 +17,6 @@ currentDataPoint=$((0+startDataPoint))
 for (( i=1; i<=repeatCount; i++ ))
 do
     echo "Running with $currentDataPoint data points"
-    ./run -i ../_problems/instances/dataset1.sim --parallel 1 --timestamp-csv --csv 1 --data-points $currentDataPoint
+    ./run -i ../_problems/instances/dataset1.sim -e binary,log,log_aux,log_aux_domain_restricted -t 5 --parallel 1 --timestamp-csv --csv 1 --data-points $currentDataPoint --data-point-increment $dataPointIncrement
     currentDataPoint=$((currentDataPoint+dataPointIncrement))
 done

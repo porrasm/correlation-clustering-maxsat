@@ -22,6 +22,9 @@ public static class SolverParams {
         if (solver.Contains("rc2")) {
             return showModel ? RC2Verbose : RC2;
         }
+        if (solver.Contains("cashwmaxsatcoreplus")) {
+            return showModel ? CashwmaxsatcoreplusVerbose : Cashwmaxsatcoreplus;
+        }
 
         Console.WriteLine("Warning: preset parameters for solver not found: " + solver);
         return "";
@@ -38,4 +41,7 @@ public static class SolverParams {
 
     public static string RC2 = "-v";
     public static string RC2Verbose = "-v -v --vnew";
+
+    public static string Cashwmaxsatcoreplus = "-m";
+    public static string CashwmaxsatcoreplusVerbose = "-m";
 }

@@ -15,8 +15,6 @@ namespace CorrelationClusteringEncoder.Benchmarking;
 
 public static class Benchmarks {
     public static void BenchmarkEncodings(CrlClusteringInstance cluster, params ICrlClusteringEncoder[] codecs) {
-        SATSolver.WorkingDirectory = Args.Instance.Directory;
-
         if (BenchmarkIsRedundant()) {
             return;
         }
@@ -75,7 +73,7 @@ public static class Benchmarks {
     private static void CheckForInvalidSolutions(List<BenchResult> results) {
         // All non null solutions should have identical costs
         List<BenchResult> nonNullResults = results.Where(r => r.SATSolution != null).ToList();
-        
+
         bool solutionCostsDiffer = false;
         if (nonNullResults.Count > 0) {
             ulong cost = nonNullResults[0].SATSolution.Cost;
@@ -139,23 +137,27 @@ public static class Benchmarks {
             Console.WriteLine($"    Time limit: {Args.Instance.SolverTimeLimit}");
         }
 
-        SolverResult result = SATSolver.SolveWithTimeCommand(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, SolverParams.GetSolverParams(Args.Instance.MaxSATSolver, Args.Instance.ShowModel), Args.Instance.GetTimeBinary());
+        SolverResult result = SATSolver.Solve(Args.Instance.MaxSATSolver, Args.Instance.WCNFFile(encoding), SATFormat.WCNF_MAXSAT, Args.Instance.SolverTimeLimit, SolverParams.GetSolverParams(Args.Instance.MaxSATSolver, Args.Instance.ShowModel));
 
-        Console.WriteLine("Solver output:");
-        Console.WriteLine(result.ProcessOutput);
-        Console.WriteLine();
+        if (Args.Instance.LogSolverOutput) {
+            Console.WriteLine("Solver output:");
+            Console.WriteLine(result.ProcessOutput);
+            Console.WriteLine();
 
-        string[] myLines = result.ProcessOutput.Split('\n').Where(l => l.StartsWith("c eetu")).ToArray();
-        Console.WriteLine("Custom output:");
-        Console.WriteLine(string.Join('\n', myLines));
-        Console.WriteLine();
+            string[] myLines = result.ProcessOutput.Split('\n').Where(l => l.StartsWith("c eetu")).ToArray();
+            Console.WriteLine("Custom output:");
+            Console.WriteLine(string.Join('\n', myLines));
+            Console.WriteLine();
+        }
 
         if (!Args.Instance.Save) {
             File.Delete(Args.Instance.WCNFFile(encoding));
         }
 
-        if (result.Status != SolverResult.ProcessStatus.Succes) {
+        if (result.Status != SolverResult.ProcessStatus.Success) {
             Console.WriteLine("Solver could not finish in time or other error");
+            Console.WriteLine("Output or error:");
+            Console.WriteLine(result.ProcessOutput);
             return new BenchResult(encoding) {
                 EncodingTimes = encodingTimes,
                 VariableCount = variableCount,
